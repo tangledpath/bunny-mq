@@ -12,6 +12,6 @@ def test_bunny_queue():
         bunny.register_handler("foo", foo_handler)
         bunny.start()
         bunny.send_message(type='foo', body="foobar")
-        time.sleep(1)
+        # time.sleep(1)
     finally:
         bunny.stop()

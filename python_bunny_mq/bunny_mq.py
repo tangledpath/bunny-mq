@@ -1,9 +1,11 @@
+import logging
 import queue
 import signal
+import time
 from threading import Thread, Event
 from typing import Dict, Any, Callable
 
-from loguru import logger
+logger = logging.getLogger("python-bunny-mq")
 
 class BunnyMQ(Thread):
     """
@@ -14,7 +16,7 @@ class BunnyMQ(Thread):
     def foo_handler(message):
         print(f"Message: {message}")
 
-    bunny = BunnyMQ(interval=0.1)
+    bunny = BunnyMQ(timeout=0.1)
     try:
         bunny.register_handler("foo", foo_handler)
         bunny.start()
@@ -24,14 +26,16 @@ class BunnyMQ(Thread):
         bunny.stop()
     ```
     """
-    def __init__(self, interval=0.5):
+    def __init__(self, timeout=1.0, interval=1.0):
         """
         Constructs a new BunnyMQ
-        :param interval: Interval in seconds between processing messages:
+        :param timeout: Timeout period for thread operations
+        :param interval: Interval to sleep when queue is empty
         """
         Thread.__init__(self)
         self.queue = queue.Queue()
         self.handlers: Dict[str, Callable] = {}
+        self.timeout = timeout
         self.interval = interval
         self.stopped = Event()
 
@@ -57,8 +61,11 @@ class BunnyMQ(Thread):
 
     def run(self):
         """ This is the underlying Thread's run method; called via `execute->start` """
-        while not self.stopped.wait(self.interval):
+        while not self.stopped.wait(self.timeout):
             self.handle_message()
+            if self.queue.empty():
+                time.sleep(self.interval)
+
 
     def handle_message(self):
         """
@@ -76,9 +83,10 @@ class BunnyMQ(Thread):
 
     def stop(self):
         """ Stop processing messages and shuts down the queue. """
+        time.sleep(1)
         logger.info(f"Stopping queue with: {self.queue.qsize()} items left.")
         self.stopped.set()
-        self.join(self.interval)
+        self.join(self.timeout)
 
     def send_message(self, **message: Dict[str, Any]):
         """ Stores a message in the queue, to processed by any registered handlers"""
