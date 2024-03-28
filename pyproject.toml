@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "bunny-mq"
+version = "0.1.0"
+description = "Lightweight message queue for intra-process pub-sub communication."
+authors = ["Steven Miers <steven.miers@gmail.com>"]
+license = "THE UNLICESE"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+loguru = "^0.7.2"
+
+[tool.poetry.group.dev.dependencies]
+pdoc = "^14.4.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
