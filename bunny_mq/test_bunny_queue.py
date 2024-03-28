@@ -1,7 +1,7 @@
 import time
 
-from fast_api_jwt.utils.bunny_mq import BunnyMQ
-from loguru import logger
+from .bunny_mq import BunnyMQ
+
 
 def test_bunny_queue():
     def foo_handler(message):
