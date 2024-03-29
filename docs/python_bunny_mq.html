@@ -18,7 +18,7 @@
         <label id="navtoggle" for="togglestate" class="pdoc-button"><svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'><path stroke-linecap='round' stroke="currentColor" stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/></svg></label>
         <input id="togglestate" type="checkbox" aria-hidden="true" tabindex="-1">
         <div>
-            <img src="https://raw.githubusercontent.com/tangledpath/python-bunny-mq/master/bunny.png" class="logo" alt="project logo"/>
+            <img src="https://raw.githubusercontent.com/tangledpath/python-bunny-mq/master/pao.png" class="logo" alt="project logo"/>
 
             <input type="search" placeholder="Search..." role="searchbox" aria-label="search"
                    pattern=".+" required>
@@ -118,9 +118,10 @@ python_bunny_mq    </h1>
 
 <h3 id="linting">Linting</h3>
 
+<p>Linting is done via autopep8</p>
+
 <div class="pdoc-code codehilite">
-<pre><span></span><code><span class="w">   </span>ruff<span class="w"> </span>check<span class="w"> </span>.<span class="w"> </span><span class="c1"># Find linting errors</span>
-<span class="w">   </span>ruff<span class="w"> </span>check<span class="w"> </span>.<span class="w"> </span>--fix<span class="w"> </span><span class="c1"># Auto-fix linting errors (where possible)</span>
+<pre><span></span><code>script/lint.sh
 </code></pre>
 </div>
 
@@ -129,7 +130,7 @@ python_bunny_mq    </h1>
 <pre><code># Shows in browser
 poetry run pdoc python_bunny_mq/
 # Generates to ./docs
-bin/build.sh
+script/build.sh
 </code></pre>
 
 <h3 id="testing">Testing</h3>
@@ -143,12 +144,20 @@ bin/build.sh
 
 <h4 id="building">Building</h4>
 
-<p><code>poetry build</code></p>
+<div class="pdoc-code codehilite">
+<pre><span></span><code>scriopt/build.sh
+</code></pre>
+</div>
 
 <h4 id="publishing">Publishing</h4>
 
-<p>Note: <code>--build</code> flag build before publishing
-<code>poetry publish --build -u __token__ -p $PYPI_TOKEN</code></p>
+<p>Note: <code>--build</code> flag build before publishing</p>
+
+<div class="pdoc-code codehilite">
+<pre><span></span><code>script/publish.sh
+<span class="c1"># poetry publish --build -u __token__ -p $PYPI_TOKEN</span>
+</code></pre>
+</div>
 </div>
 
                         <input id="mod-python_bunny_mq-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">

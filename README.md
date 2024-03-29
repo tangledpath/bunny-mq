@@ -34,10 +34,10 @@ pip install python-bunny-mq
 
 ## Getting started
 ## Development
-### Linting
+### Linting 
+Linting is done via autopep8
 ```bash
-   ruff check . # Find linting errors
-   ruff check . --fix # Auto-fix linting errors (where possible)
+script/lint.sh
 ```
 
 ### Documentation
@@ -45,7 +45,7 @@ pip install python-bunny-mq
 # Shows in browser
 poetry run pdoc python_bunny_mq/
 # Generates to ./docs
-bin/build.sh
+script/build.sh
 ```
 
 ### Testing
@@ -55,7 +55,12 @@ bin/build.sh
 
 ### Building and Publishing
 #### Building
-`poetry build`
+```bash
+scriopt/build.sh
+```
 #### Publishing
 Note: `--build` flag build before publishing
-`poetry publish --build -u __token__ -p $PYPI_TOKEN`
+```bash
+script/publish.sh
+# poetry publish --build -u __token__ -p $PYPI_TOKEN
+```

@@ -7,6 +7,7 @@ from typing import Dict, Any, Callable
 
 logger = logging.getLogger("python-bunny-mq")
 
+
 class BunnyMQ(Thread):
     """
     Lightweight message queue for intra-process pub-sub communication.
@@ -26,6 +27,7 @@ class BunnyMQ(Thread):
         bunny.stop()
     ```
     """
+
     def __init__(self, timeout=1.0, interval=1.0):
         """
         Constructs a new BunnyMQ
@@ -58,14 +60,12 @@ class BunnyMQ(Thread):
         signal.signal(signal.SIGINT, self.__signal_shutdown)
         self.start()
 
-
     def run(self):
         """ This is the underlying Thread's run method; called via `execute->start` """
         while not self.stopped.wait(self.timeout):
             self.handle_message()
             if self.queue.empty():
                 time.sleep(self.interval)
-
 
     def handle_message(self):
         """
