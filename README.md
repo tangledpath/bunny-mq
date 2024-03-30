@@ -1,7 +1,7 @@
 # Python Bunny MQ
 Python-based package that implements a no-dependency, ultra-lightweight intra-process message queue.  This works inside a single process.  
-* This is useful when you need a lightweight pub-sub system
-* For example, the author is using it in development to send message to local handlers.  These are deployed to AWS and are invoked as a lambda function via SQS.   
+* This is useful when you need a lightweight pub-sub system.
+* For example, the author is using it in development to send message to local handlers.  These handlers are ultimately deployed to AWS and are invoked as a lambda function via SQS, so the dev-time "bunny-mq" will not be used.   
 
 <p>
   <img src="https://raw.githubusercontent.com/tangledpath/python-bunny-mq/master/bunny.png" align="left" width="512"/>
