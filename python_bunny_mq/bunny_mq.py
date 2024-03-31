@@ -28,17 +28,20 @@ class BunnyMQ(Thread):
     ```
     """
 
-    def __init__(self, timeout=1.0, interval=1.0):
+    def __init__(self, timeout: float = 1.0, interval: float = 1.0, grace_period: float = 15.0):
         """
         Constructs a new BunnyMQ
         :param timeout: Timeout period for thread operations
         :param interval: Interval to sleep when queue is empty
+        :param grace_period: How long to wait after stopping to wait for messages in the queue to empty out:
         """
         Thread.__init__(self)
         self.queue = queue.Queue()
         self.handlers: Dict[str, Callable] = {}
         self.timeout = timeout
         self.interval = interval
+        self.grace_period = grace_period
+        self.stopping = False
         self.stopped = Event()
 
     def register_handler(self, message_type: str, handler: Callable) -> None:
@@ -81,17 +84,38 @@ class BunnyMQ(Thread):
         except queue.Empty:
             pass
 
+    def __len__(self):
+        """
+        Returns the number of messages in the queue.
+
+        Usage:
+             bunny_mq = BunnyMQ()
+             len(bunny_mq)
+        """
+        return self.queue.qsize()
+
     def stop(self):
-        """ Stop processing messages and shuts down the queue. """
-        time.sleep(1)
+        """
+        Stop processing messages and shuts down the queue.   This disallows new messages
+        shuttint down, and waits up to a period of self.grace_period for the queue to empty:
+        """
+        self.stopping = True
         logger.info(f"Stopping queue with: {self.queue.qsize()} items left.")
+        for i in range(int(self.grace_period)):
+            if self.queue.empty():
+                break
+            time.sleep(1)
         self.stopped.set()
         self.join(self.timeout)
+        logger.info(f"Stopped queue with: {self.queue.qsize()} items left.")
 
-    def send_message(self, **message: Dict[str, Any]):
+    def send_message(self, message: Dict[str, Any]):
         """ Stores a message in the queue, to processed by any registered handlers"""
-        logger.info(f"Sending message: {message}")
-        self.queue.put(message)
+        if self.stopping:
+            logger.info(f"Queue is stopped; blocking message: {message}")
+        else:
+            logger.info(f"Sending message: {message}")
+            self.queue.put(message)
 
     def __signal_shutdown(self, _signum, _frame):
         """ Called because of a SIGTERM or SIGINT signal"""
