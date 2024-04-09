@@ -9,6 +9,8 @@ logger = logging.getLogger("python-bunny-mq")
 
 
 class BunnyMQ(Thread):
+    DEFAULT_NAME = "BunnyMQ"
+    WILDCARD_HANDLER = "*"
     """
     Lightweight message queue for intra-process pub-sub communication.
 
@@ -28,14 +30,17 @@ class BunnyMQ(Thread):
     ```
     """
 
-    def __init__(self, timeout: float = 1.0, interval: float = 1.0, grace_period: float = 15.0):
+    def __init__(self, name: str = DEFAULT_NAME, timeout: float = 1.0, interval: float = 1.0,
+                 grace_period: float = 15.0):
         """
         Constructs a new BunnyMQ
+        :param name: Name for given queue, in case you are using multiple..
         :param timeout: Timeout period for thread operations
         :param interval: Interval to sleep when queue is empty
         :param grace_period: How long to wait after stopping to wait for messages in the queue to empty out:
         """
         Thread.__init__(self)
+        self.name = name
         self.queue = queue.Queue()
         self.handlers: Dict[str, Callable] = {}
         self.timeout = timeout
@@ -47,11 +52,13 @@ class BunnyMQ(Thread):
     def register_handler(self, message_type: str, handler: Callable) -> None:
         """
         Registers a handler for given message_typ
-        :param message_type: The message type
+        :param message_type: The message type.  Use WILDCARD_HANDLER for all messages.
         :param handler: The callable to register; this will be passed the messag
         """
         logger.info(f"Registering handler for {message_type}")
-        self.handlers[message_type] = handler
+        handlers = self.handlers.get(message_type, [])
+        handlers.append(handler)
+        self.handlers[message_type] = handlers
 
     def execute(self):
         """
@@ -77,10 +84,22 @@ class BunnyMQ(Thread):
         """
         try:
             message: Dict[str] = self.queue.get(block=False)
-            logger.info(f"Received message: {message}")
-            message_type = message["type"]
-            handler = self.handlers.get(message_type, None)
-            handler(message)
+            logger.info(f"Received message: {message}", {
+                "name": self.name
+            })
+            message_type = message.get("type", None)
+            if message_type:
+                handlers = self.handlers.get(message_type, None)
+                if handlers:
+                    for handler in handlers:
+                        handler(message)
+
+            # Check for wildcard handlers:
+            handlers = self.handlers.get(self.WILDCARD_HANDLER, None)
+            if handlers:
+                for handler in handlers:
+                    handler(message)
+
         except queue.Empty:
             pass
 
@@ -96,25 +115,31 @@ class BunnyMQ(Thread):
 
     def stop(self):
         """
-        Stop processing messages and shuts down the queue.   This disallows new messages
-        shuttint down, and waits up to a period of self.grace_period for the queue to empty:
+        Gracefully stop processing messages and shuts down the queue.   This disallows new
+        messages to be sent and waits up to a period of self.grace_period for the queue to empty:
         """
         self.stopping = True
-        logger.info(f"Stopping queue with: {self.queue.qsize()} items left.")
+        logger.info(f"Stopping queue with: {self.queue.qsize()} items left.", {
+            "name": self.name
+        })
         for i in range(int(self.grace_period)):
             if self.queue.empty():
                 break
             time.sleep(1)
         self.stopped.set()
         self.join(self.timeout)
-        logger.info(f"Stopped queue with: {self.queue.qsize()} items left.")
+        logger.info(f"Stopped queue with: {self.queue.qsize()} items left.", {
+            "name": self.name
+        })
 
     def send_message(self, message: Dict[str, Any]):
         """ Stores a message in the queue, to processed by any registered handlers"""
+        logger.info(f"Sending message: {message}", {"name": self.name})
         if self.stopping:
-            logger.info(f"Queue is stopped; blocking message: {message}")
+            logger.info(f"Queue is stopped; blocking message: {message}", {
+                "name": self.name
+            })
         else:
-            logger.info(f"Sending message: {message}")
             self.queue.put(message)
 
     def __signal_shutdown(self, _signum, _frame):

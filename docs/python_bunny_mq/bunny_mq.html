@@ -42,6 +42,15 @@
                                 <a class="function" href="#BunnyMQ.__init__">BunnyMQ</a>
                         </li>
                         <li>
+                                <a class="variable" href="#BunnyMQ.DEFAULT_NAME">DEFAULT_NAME</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#BunnyMQ.WILDCARD_HANDLER">WILDCARD_HANDLER</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#BunnyMQ.name">name</a>
+                        </li>
+                        <li>
                                 <a class="variable" href="#BunnyMQ.queue">queue</a>
                         </li>
                         <li>
@@ -115,117 +124,142 @@
 </span><span id="L-9"><a href="#L-9"><span class="linenos">  9</span></a>
 </span><span id="L-10"><a href="#L-10"><span class="linenos"> 10</span></a>
 </span><span id="L-11"><a href="#L-11"><span class="linenos"> 11</span></a><span class="k">class</span> <span class="nc">BunnyMQ</span><span class="p">(</span><span class="n">Thread</span><span class="p">):</span>
-</span><span id="L-12"><a href="#L-12"><span class="linenos"> 12</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="L-13"><a href="#L-13"><span class="linenos"> 13</span></a><span class="sd">    Lightweight message queue for intra-process pub-sub communication.</span>
-</span><span id="L-14"><a href="#L-14"><span class="linenos"> 14</span></a>
-</span><span id="L-15"><a href="#L-15"><span class="linenos"> 15</span></a><span class="sd">    Usage:</span>
-</span><span id="L-16"><a href="#L-16"><span class="linenos"> 16</span></a><span class="sd">    ```</span>
-</span><span id="L-17"><a href="#L-17"><span class="linenos"> 17</span></a><span class="sd">    def foo_handler(message):</span>
-</span><span id="L-18"><a href="#L-18"><span class="linenos"> 18</span></a><span class="sd">        print(f&quot;Message: {message}&quot;)</span>
-</span><span id="L-19"><a href="#L-19"><span class="linenos"> 19</span></a>
-</span><span id="L-20"><a href="#L-20"><span class="linenos"> 20</span></a><span class="sd">    bunny = BunnyMQ(timeout=0.1)</span>
-</span><span id="L-21"><a href="#L-21"><span class="linenos"> 21</span></a><span class="sd">    try:</span>
-</span><span id="L-22"><a href="#L-22"><span class="linenos"> 22</span></a><span class="sd">        bunny.register_handler(&quot;foo&quot;, foo_handler)</span>
-</span><span id="L-23"><a href="#L-23"><span class="linenos"> 23</span></a><span class="sd">        bunny.start()</span>
-</span><span id="L-24"><a href="#L-24"><span class="linenos"> 24</span></a><span class="sd">        bunny.send_message(type=&#39;foo&#39;, body=&quot;foobar&quot;)</span>
-</span><span id="L-25"><a href="#L-25"><span class="linenos"> 25</span></a><span class="sd">        time.sleep(1)</span>
-</span><span id="L-26"><a href="#L-26"><span class="linenos"> 26</span></a><span class="sd">    finally:</span>
-</span><span id="L-27"><a href="#L-27"><span class="linenos"> 27</span></a><span class="sd">        bunny.stop()</span>
-</span><span id="L-28"><a href="#L-28"><span class="linenos"> 28</span></a><span class="sd">    ```</span>
-</span><span id="L-29"><a href="#L-29"><span class="linenos"> 29</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="L-30"><a href="#L-30"><span class="linenos"> 30</span></a>
-</span><span id="L-31"><a href="#L-31"><span class="linenos"> 31</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">timeout</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span> <span class="n">interval</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span> <span class="n">grace_period</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">15.0</span><span class="p">):</span>
-</span><span id="L-32"><a href="#L-32"><span class="linenos"> 32</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="L-33"><a href="#L-33"><span class="linenos"> 33</span></a><span class="sd">        Constructs a new BunnyMQ</span>
-</span><span id="L-34"><a href="#L-34"><span class="linenos"> 34</span></a><span class="sd">        :param timeout: Timeout period for thread operations</span>
-</span><span id="L-35"><a href="#L-35"><span class="linenos"> 35</span></a><span class="sd">        :param interval: Interval to sleep when queue is empty</span>
-</span><span id="L-36"><a href="#L-36"><span class="linenos"> 36</span></a><span class="sd">        :param grace_period: How long to wait after stopping to wait for messages in the queue to empty out:</span>
-</span><span id="L-37"><a href="#L-37"><span class="linenos"> 37</span></a><span class="sd">        &quot;&quot;&quot;</span>
-</span><span id="L-38"><a href="#L-38"><span class="linenos"> 38</span></a>        <span class="n">Thread</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
-</span><span id="L-39"><a href="#L-39"><span class="linenos"> 39</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">queue</span> <span class="o">=</span> <span class="n">queue</span><span class="o">.</span><span class="n">Queue</span><span class="p">()</span>
-</span><span id="L-40"><a href="#L-40"><span class="linenos"> 40</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">handlers</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Callable</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
-</span><span id="L-41"><a href="#L-41"><span class="linenos"> 41</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">timeout</span> <span class="o">=</span> <span class="n">timeout</span>
-</span><span id="L-42"><a href="#L-42"><span class="linenos"> 42</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">interval</span> <span class="o">=</span> <span class="n">interval</span>
-</span><span id="L-43"><a href="#L-43"><span class="linenos"> 43</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">grace_period</span> <span class="o">=</span> <span class="n">grace_period</span>
-</span><span id="L-44"><a href="#L-44"><span class="linenos"> 44</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">stopping</span> <span class="o">=</span> <span class="kc">False</span>
-</span><span id="L-45"><a href="#L-45"><span class="linenos"> 45</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">stopped</span> <span class="o">=</span> <span class="n">Event</span><span class="p">()</span>
-</span><span id="L-46"><a href="#L-46"><span class="linenos"> 46</span></a>
-</span><span id="L-47"><a href="#L-47"><span class="linenos"> 47</span></a>    <span class="k">def</span> <span class="nf">register_handler</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message_type</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">handler</span><span class="p">:</span> <span class="n">Callable</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-</span><span id="L-48"><a href="#L-48"><span class="linenos"> 48</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="L-49"><a href="#L-49"><span class="linenos"> 49</span></a><span class="sd">        Registers a handler for given message_typ</span>
-</span><span id="L-50"><a href="#L-50"><span class="linenos"> 50</span></a><span class="sd">        :param message_type: The message type</span>
-</span><span id="L-51"><a href="#L-51"><span class="linenos"> 51</span></a><span class="sd">        :param handler: The callable to register; this will be passed the messag</span>
-</span><span id="L-52"><a href="#L-52"><span class="linenos"> 52</span></a><span class="sd">        &quot;&quot;&quot;</span>
-</span><span id="L-53"><a href="#L-53"><span class="linenos"> 53</span></a>        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Registering handler for </span><span class="si">{</span><span class="n">message_type</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-</span><span id="L-54"><a href="#L-54"><span class="linenos"> 54</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">handlers</span><span class="p">[</span><span class="n">message_type</span><span class="p">]</span> <span class="o">=</span> <span class="n">handler</span>
-</span><span id="L-55"><a href="#L-55"><span class="linenos"> 55</span></a>
-</span><span id="L-56"><a href="#L-56"><span class="linenos"> 56</span></a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="L-57"><a href="#L-57"><span class="linenos"> 57</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="L-58"><a href="#L-58"><span class="linenos"> 58</span></a><span class="sd">        Begin execution of the queue.  this starts the underlying thread, which</span>
-</span><span id="L-59"><a href="#L-59"><span class="linenos"> 59</span></a><span class="sd">        will call `run`.  It also registers handlers for SIGTERM and SIGINT, so we</span>
-</span><span id="L-60"><a href="#L-60"><span class="linenos"> 60</span></a><span class="sd">        can cleanly shut down:</span>
-</span><span id="L-61"><a href="#L-61"><span class="linenos"> 61</span></a><span class="sd">        &quot;&quot;&quot;</span>
-</span><span id="L-62"><a href="#L-62"><span class="linenos"> 62</span></a>        <span class="n">signal</span><span class="o">.</span><span class="n">signal</span><span class="p">(</span><span class="n">signal</span><span class="o">.</span><span class="n">SIGTERM</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__signal_shutdown</span><span class="p">)</span>
-</span><span id="L-63"><a href="#L-63"><span class="linenos"> 63</span></a>        <span class="n">signal</span><span class="o">.</span><span class="n">signal</span><span class="p">(</span><span class="n">signal</span><span class="o">.</span><span class="n">SIGINT</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__signal_shutdown</span><span class="p">)</span>
-</span><span id="L-64"><a href="#L-64"><span class="linenos"> 64</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
-</span><span id="L-65"><a href="#L-65"><span class="linenos"> 65</span></a>
-</span><span id="L-66"><a href="#L-66"><span class="linenos"> 66</span></a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="L-67"><a href="#L-67"><span class="linenos"> 67</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot; This is the underlying Thread&#39;s run method; called via `execute-&gt;start` &quot;&quot;&quot;</span>
-</span><span id="L-68"><a href="#L-68"><span class="linenos"> 68</span></a>        <span class="k">while</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">stopped</span><span class="o">.</span><span class="n">wait</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">timeout</span><span class="p">):</span>
-</span><span id="L-69"><a href="#L-69"><span class="linenos"> 69</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">handle_message</span><span class="p">()</span>
-</span><span id="L-70"><a href="#L-70"><span class="linenos"> 70</span></a>            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">queue</span><span class="o">.</span><span class="n">empty</span><span class="p">():</span>
-</span><span id="L-71"><a href="#L-71"><span class="linenos"> 71</span></a>                <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">interval</span><span class="p">)</span>
+</span><span id="L-12"><a href="#L-12"><span class="linenos"> 12</span></a>    <span class="n">DEFAULT_NAME</span> <span class="o">=</span> <span class="s2">&quot;BunnyMQ&quot;</span>
+</span><span id="L-13"><a href="#L-13"><span class="linenos"> 13</span></a>    <span class="n">WILDCARD_HANDLER</span> <span class="o">=</span> <span class="s2">&quot;*&quot;</span>
+</span><span id="L-14"><a href="#L-14"><span class="linenos"> 14</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-15"><a href="#L-15"><span class="linenos"> 15</span></a><span class="sd">    Lightweight message queue for intra-process pub-sub communication.</span>
+</span><span id="L-16"><a href="#L-16"><span class="linenos"> 16</span></a>
+</span><span id="L-17"><a href="#L-17"><span class="linenos"> 17</span></a><span class="sd">    Usage:</span>
+</span><span id="L-18"><a href="#L-18"><span class="linenos"> 18</span></a><span class="sd">    ```</span>
+</span><span id="L-19"><a href="#L-19"><span class="linenos"> 19</span></a><span class="sd">    def foo_handler(message):</span>
+</span><span id="L-20"><a href="#L-20"><span class="linenos"> 20</span></a><span class="sd">        print(f&quot;Message: {message}&quot;)</span>
+</span><span id="L-21"><a href="#L-21"><span class="linenos"> 21</span></a>
+</span><span id="L-22"><a href="#L-22"><span class="linenos"> 22</span></a><span class="sd">    bunny = BunnyMQ(timeout=0.1)</span>
+</span><span id="L-23"><a href="#L-23"><span class="linenos"> 23</span></a><span class="sd">    try:</span>
+</span><span id="L-24"><a href="#L-24"><span class="linenos"> 24</span></a><span class="sd">        bunny.register_handler(&quot;foo&quot;, foo_handler)</span>
+</span><span id="L-25"><a href="#L-25"><span class="linenos"> 25</span></a><span class="sd">        bunny.start()</span>
+</span><span id="L-26"><a href="#L-26"><span class="linenos"> 26</span></a><span class="sd">        bunny.send_message(type=&#39;foo&#39;, body=&quot;foobar&quot;)</span>
+</span><span id="L-27"><a href="#L-27"><span class="linenos"> 27</span></a><span class="sd">        time.sleep(1)</span>
+</span><span id="L-28"><a href="#L-28"><span class="linenos"> 28</span></a><span class="sd">    finally:</span>
+</span><span id="L-29"><a href="#L-29"><span class="linenos"> 29</span></a><span class="sd">        bunny.stop()</span>
+</span><span id="L-30"><a href="#L-30"><span class="linenos"> 30</span></a><span class="sd">    ```</span>
+</span><span id="L-31"><a href="#L-31"><span class="linenos"> 31</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="L-32"><a href="#L-32"><span class="linenos"> 32</span></a>
+</span><span id="L-33"><a href="#L-33"><span class="linenos"> 33</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">DEFAULT_NAME</span><span class="p">,</span> <span class="n">timeout</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span> <span class="n">interval</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span>
+</span><span id="L-34"><a href="#L-34"><span class="linenos"> 34</span></a>                 <span class="n">grace_period</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">15.0</span><span class="p">):</span>
+</span><span id="L-35"><a href="#L-35"><span class="linenos"> 35</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-36"><a href="#L-36"><span class="linenos"> 36</span></a><span class="sd">        Constructs a new BunnyMQ</span>
+</span><span id="L-37"><a href="#L-37"><span class="linenos"> 37</span></a><span class="sd">        :param name: Name for given queue, in case you are using multiple..</span>
+</span><span id="L-38"><a href="#L-38"><span class="linenos"> 38</span></a><span class="sd">        :param timeout: Timeout period for thread operations</span>
+</span><span id="L-39"><a href="#L-39"><span class="linenos"> 39</span></a><span class="sd">        :param interval: Interval to sleep when queue is empty</span>
+</span><span id="L-40"><a href="#L-40"><span class="linenos"> 40</span></a><span class="sd">        :param grace_period: How long to wait after stopping to wait for messages in the queue to empty out:</span>
+</span><span id="L-41"><a href="#L-41"><span class="linenos"> 41</span></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="L-42"><a href="#L-42"><span class="linenos"> 42</span></a>        <span class="n">Thread</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+</span><span id="L-43"><a href="#L-43"><span class="linenos"> 43</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+</span><span id="L-44"><a href="#L-44"><span class="linenos"> 44</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">queue</span> <span class="o">=</span> <span class="n">queue</span><span class="o">.</span><span class="n">Queue</span><span class="p">()</span>
+</span><span id="L-45"><a href="#L-45"><span class="linenos"> 45</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">handlers</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Callable</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+</span><span id="L-46"><a href="#L-46"><span class="linenos"> 46</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">timeout</span> <span class="o">=</span> <span class="n">timeout</span>
+</span><span id="L-47"><a href="#L-47"><span class="linenos"> 47</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">interval</span> <span class="o">=</span> <span class="n">interval</span>
+</span><span id="L-48"><a href="#L-48"><span class="linenos"> 48</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">grace_period</span> <span class="o">=</span> <span class="n">grace_period</span>
+</span><span id="L-49"><a href="#L-49"><span class="linenos"> 49</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">stopping</span> <span class="o">=</span> <span class="kc">False</span>
+</span><span id="L-50"><a href="#L-50"><span class="linenos"> 50</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">stopped</span> <span class="o">=</span> <span class="n">Event</span><span class="p">()</span>
+</span><span id="L-51"><a href="#L-51"><span class="linenos"> 51</span></a>
+</span><span id="L-52"><a href="#L-52"><span class="linenos"> 52</span></a>    <span class="k">def</span> <span class="nf">register_handler</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message_type</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">handler</span><span class="p">:</span> <span class="n">Callable</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="L-53"><a href="#L-53"><span class="linenos"> 53</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-54"><a href="#L-54"><span class="linenos"> 54</span></a><span class="sd">        Registers a handler for given message_typ</span>
+</span><span id="L-55"><a href="#L-55"><span class="linenos"> 55</span></a><span class="sd">        :param message_type: The message type.  Use WILDCARD_HANDLER for all messages.</span>
+</span><span id="L-56"><a href="#L-56"><span class="linenos"> 56</span></a><span class="sd">        :param handler: The callable to register; this will be passed the messag</span>
+</span><span id="L-57"><a href="#L-57"><span class="linenos"> 57</span></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="L-58"><a href="#L-58"><span class="linenos"> 58</span></a>        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Registering handler for </span><span class="si">{</span><span class="n">message_type</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</span><span id="L-59"><a href="#L-59"><span class="linenos"> 59</span></a>        <span class="n">handlers</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">handlers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">message_type</span><span class="p">,</span> <span class="p">[])</span>
+</span><span id="L-60"><a href="#L-60"><span class="linenos"> 60</span></a>        <span class="n">handlers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">handler</span><span class="p">)</span>
+</span><span id="L-61"><a href="#L-61"><span class="linenos"> 61</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">handlers</span><span class="p">[</span><span class="n">message_type</span><span class="p">]</span> <span class="o">=</span> <span class="n">handlers</span>
+</span><span id="L-62"><a href="#L-62"><span class="linenos"> 62</span></a>
+</span><span id="L-63"><a href="#L-63"><span class="linenos"> 63</span></a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-64"><a href="#L-64"><span class="linenos"> 64</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-65"><a href="#L-65"><span class="linenos"> 65</span></a><span class="sd">        Begin execution of the queue.  this starts the underlying thread, which</span>
+</span><span id="L-66"><a href="#L-66"><span class="linenos"> 66</span></a><span class="sd">        will call `run`.  It also registers handlers for SIGTERM and SIGINT, so we</span>
+</span><span id="L-67"><a href="#L-67"><span class="linenos"> 67</span></a><span class="sd">        can cleanly shut down:</span>
+</span><span id="L-68"><a href="#L-68"><span class="linenos"> 68</span></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="L-69"><a href="#L-69"><span class="linenos"> 69</span></a>        <span class="n">signal</span><span class="o">.</span><span class="n">signal</span><span class="p">(</span><span class="n">signal</span><span class="o">.</span><span class="n">SIGTERM</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__signal_shutdown</span><span class="p">)</span>
+</span><span id="L-70"><a href="#L-70"><span class="linenos"> 70</span></a>        <span class="n">signal</span><span class="o">.</span><span class="n">signal</span><span class="p">(</span><span class="n">signal</span><span class="o">.</span><span class="n">SIGINT</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__signal_shutdown</span><span class="p">)</span>
+</span><span id="L-71"><a href="#L-71"><span class="linenos"> 71</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
 </span><span id="L-72"><a href="#L-72"><span class="linenos"> 72</span></a>
-</span><span id="L-73"><a href="#L-73"><span class="linenos"> 73</span></a>    <span class="k">def</span> <span class="nf">handle_message</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="L-74"><a href="#L-74"><span class="linenos"> 74</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="L-75"><a href="#L-75"><span class="linenos"> 75</span></a><span class="sd">        Handles the next message from the queue; calling any registered</span>
-</span><span id="L-76"><a href="#L-76"><span class="linenos"> 76</span></a><span class="sd">        handlers with the message</span>
-</span><span id="L-77"><a href="#L-77"><span class="linenos"> 77</span></a><span class="sd">        &quot;&quot;&quot;</span>
-</span><span id="L-78"><a href="#L-78"><span class="linenos"> 78</span></a>        <span class="k">try</span><span class="p">:</span>
-</span><span id="L-79"><a href="#L-79"><span class="linenos"> 79</span></a>            <span class="n">message</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">queue</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">block</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-</span><span id="L-80"><a href="#L-80"><span class="linenos"> 80</span></a>            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Received message: </span><span class="si">{</span><span class="n">message</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-</span><span id="L-81"><a href="#L-81"><span class="linenos"> 81</span></a>            <span class="n">message_type</span> <span class="o">=</span> <span class="n">message</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span>
-</span><span id="L-82"><a href="#L-82"><span class="linenos"> 82</span></a>            <span class="n">handler</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">handlers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">message_type</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-</span><span id="L-83"><a href="#L-83"><span class="linenos"> 83</span></a>            <span class="n">handler</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
-</span><span id="L-84"><a href="#L-84"><span class="linenos"> 84</span></a>        <span class="k">except</span> <span class="n">queue</span><span class="o">.</span><span class="n">Empty</span><span class="p">:</span>
-</span><span id="L-85"><a href="#L-85"><span class="linenos"> 85</span></a>            <span class="k">pass</span>
-</span><span id="L-86"><a href="#L-86"><span class="linenos"> 86</span></a>
-</span><span id="L-87"><a href="#L-87"><span class="linenos"> 87</span></a>    <span class="k">def</span> <span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="L-88"><a href="#L-88"><span class="linenos"> 88</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="L-89"><a href="#L-89"><span class="linenos"> 89</span></a><span class="sd">        Returns the number of messages in the queue.</span>
-</span><span id="L-90"><a href="#L-90"><span class="linenos"> 90</span></a>
-</span><span id="L-91"><a href="#L-91"><span class="linenos"> 91</span></a><span class="sd">        Usage:</span>
-</span><span id="L-92"><a href="#L-92"><span class="linenos"> 92</span></a><span class="sd">             bunny_mq = BunnyMQ()</span>
-</span><span id="L-93"><a href="#L-93"><span class="linenos"> 93</span></a><span class="sd">             len(bunny_mq)</span>
-</span><span id="L-94"><a href="#L-94"><span class="linenos"> 94</span></a><span class="sd">        &quot;&quot;&quot;</span>
-</span><span id="L-95"><a href="#L-95"><span class="linenos"> 95</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">queue</span><span class="o">.</span><span class="n">qsize</span><span class="p">()</span>
+</span><span id="L-73"><a href="#L-73"><span class="linenos"> 73</span></a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-74"><a href="#L-74"><span class="linenos"> 74</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot; This is the underlying Thread&#39;s run method; called via `execute-&gt;start` &quot;&quot;&quot;</span>
+</span><span id="L-75"><a href="#L-75"><span class="linenos"> 75</span></a>        <span class="k">while</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">stopped</span><span class="o">.</span><span class="n">wait</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">timeout</span><span class="p">):</span>
+</span><span id="L-76"><a href="#L-76"><span class="linenos"> 76</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">handle_message</span><span class="p">()</span>
+</span><span id="L-77"><a href="#L-77"><span class="linenos"> 77</span></a>            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">queue</span><span class="o">.</span><span class="n">empty</span><span class="p">():</span>
+</span><span id="L-78"><a href="#L-78"><span class="linenos"> 78</span></a>                <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">interval</span><span class="p">)</span>
+</span><span id="L-79"><a href="#L-79"><span class="linenos"> 79</span></a>
+</span><span id="L-80"><a href="#L-80"><span class="linenos"> 80</span></a>    <span class="k">def</span> <span class="nf">handle_message</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-81"><a href="#L-81"><span class="linenos"> 81</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-82"><a href="#L-82"><span class="linenos"> 82</span></a><span class="sd">        Handles the next message from the queue; calling any registered</span>
+</span><span id="L-83"><a href="#L-83"><span class="linenos"> 83</span></a><span class="sd">        handlers with the message</span>
+</span><span id="L-84"><a href="#L-84"><span class="linenos"> 84</span></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="L-85"><a href="#L-85"><span class="linenos"> 85</span></a>        <span class="k">try</span><span class="p">:</span>
+</span><span id="L-86"><a href="#L-86"><span class="linenos"> 86</span></a>            <span class="n">message</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">queue</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">block</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</span><span id="L-87"><a href="#L-87"><span class="linenos"> 87</span></a>            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Received message: </span><span class="si">{</span><span class="n">message</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="p">{</span>
+</span><span id="L-88"><a href="#L-88"><span class="linenos"> 88</span></a>                <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span>
+</span><span id="L-89"><a href="#L-89"><span class="linenos"> 89</span></a>            <span class="p">})</span>
+</span><span id="L-90"><a href="#L-90"><span class="linenos"> 90</span></a>            <span class="n">message_type</span> <span class="o">=</span> <span class="n">message</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;type&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+</span><span id="L-91"><a href="#L-91"><span class="linenos"> 91</span></a>            <span class="k">if</span> <span class="n">message_type</span><span class="p">:</span>
+</span><span id="L-92"><a href="#L-92"><span class="linenos"> 92</span></a>                <span class="n">handlers</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">handlers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">message_type</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+</span><span id="L-93"><a href="#L-93"><span class="linenos"> 93</span></a>                <span class="k">if</span> <span class="n">handlers</span><span class="p">:</span>
+</span><span id="L-94"><a href="#L-94"><span class="linenos"> 94</span></a>                    <span class="k">for</span> <span class="n">handler</span> <span class="ow">in</span> <span class="n">handlers</span><span class="p">:</span>
+</span><span id="L-95"><a href="#L-95"><span class="linenos"> 95</span></a>                        <span class="n">handler</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
 </span><span id="L-96"><a href="#L-96"><span class="linenos"> 96</span></a>
-</span><span id="L-97"><a href="#L-97"><span class="linenos"> 97</span></a>    <span class="k">def</span> <span class="nf">stop</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="L-98"><a href="#L-98"><span class="linenos"> 98</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="L-99"><a href="#L-99"><span class="linenos"> 99</span></a><span class="sd">        Stop processing messages and shuts down the queue.   This disallows new messages</span>
-</span><span id="L-100"><a href="#L-100"><span class="linenos">100</span></a><span class="sd">        shuttint down, and waits up to a period of self.grace_period for the queue to empty:</span>
-</span><span id="L-101"><a href="#L-101"><span class="linenos">101</span></a><span class="sd">        &quot;&quot;&quot;</span>
-</span><span id="L-102"><a href="#L-102"><span class="linenos">102</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">stopping</span> <span class="o">=</span> <span class="kc">True</span>
-</span><span id="L-103"><a href="#L-103"><span class="linenos">103</span></a>        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Stopping queue with: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">queue</span><span class="o">.</span><span class="n">qsize</span><span class="p">()</span><span class="si">}</span><span class="s2"> items left.&quot;</span><span class="p">)</span>
-</span><span id="L-104"><a href="#L-104"><span class="linenos">104</span></a>        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">grace_period</span><span class="p">)):</span>
-</span><span id="L-105"><a href="#L-105"><span class="linenos">105</span></a>            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">queue</span><span class="o">.</span><span class="n">empty</span><span class="p">():</span>
-</span><span id="L-106"><a href="#L-106"><span class="linenos">106</span></a>                <span class="k">break</span>
-</span><span id="L-107"><a href="#L-107"><span class="linenos">107</span></a>            <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
-</span><span id="L-108"><a href="#L-108"><span class="linenos">108</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">stopped</span><span class="o">.</span><span class="n">set</span><span class="p">()</span>
-</span><span id="L-109"><a href="#L-109"><span class="linenos">109</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">timeout</span><span class="p">)</span>
-</span><span id="L-110"><a href="#L-110"><span class="linenos">110</span></a>        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Stopped queue with: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">queue</span><span class="o">.</span><span class="n">qsize</span><span class="p">()</span><span class="si">}</span><span class="s2"> items left.&quot;</span><span class="p">)</span>
-</span><span id="L-111"><a href="#L-111"><span class="linenos">111</span></a>
-</span><span id="L-112"><a href="#L-112"><span class="linenos">112</span></a>    <span class="k">def</span> <span class="nf">send_message</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]):</span>
-</span><span id="L-113"><a href="#L-113"><span class="linenos">113</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot; Stores a message in the queue, to processed by any registered handlers&quot;&quot;&quot;</span>
-</span><span id="L-114"><a href="#L-114"><span class="linenos">114</span></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">stopping</span><span class="p">:</span>
-</span><span id="L-115"><a href="#L-115"><span class="linenos">115</span></a>            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Queue is stopped; blocking message: </span><span class="si">{</span><span class="n">message</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-</span><span id="L-116"><a href="#L-116"><span class="linenos">116</span></a>        <span class="k">else</span><span class="p">:</span>
-</span><span id="L-117"><a href="#L-117"><span class="linenos">117</span></a>            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Sending message: </span><span class="si">{</span><span class="n">message</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-</span><span id="L-118"><a href="#L-118"><span class="linenos">118</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">queue</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
-</span><span id="L-119"><a href="#L-119"><span class="linenos">119</span></a>
-</span><span id="L-120"><a href="#L-120"><span class="linenos">120</span></a>    <span class="k">def</span> <span class="nf">__signal_shutdown</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">_signum</span><span class="p">,</span> <span class="n">_frame</span><span class="p">):</span>
-</span><span id="L-121"><a href="#L-121"><span class="linenos">121</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot; Called because of a SIGTERM or SIGINT signal&quot;&quot;&quot;</span>
-</span><span id="L-122"><a href="#L-122"><span class="linenos">122</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span>
+</span><span id="L-97"><a href="#L-97"><span class="linenos"> 97</span></a>            <span class="c1"># Check for wildcard handlers:</span>
+</span><span id="L-98"><a href="#L-98"><span class="linenos"> 98</span></a>            <span class="n">handlers</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">handlers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">WILDCARD_HANDLER</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+</span><span id="L-99"><a href="#L-99"><span class="linenos"> 99</span></a>            <span class="k">if</span> <span class="n">handlers</span><span class="p">:</span>
+</span><span id="L-100"><a href="#L-100"><span class="linenos">100</span></a>                <span class="k">for</span> <span class="n">handler</span> <span class="ow">in</span> <span class="n">handlers</span><span class="p">:</span>
+</span><span id="L-101"><a href="#L-101"><span class="linenos">101</span></a>                    <span class="n">handler</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+</span><span id="L-102"><a href="#L-102"><span class="linenos">102</span></a>
+</span><span id="L-103"><a href="#L-103"><span class="linenos">103</span></a>        <span class="k">except</span> <span class="n">queue</span><span class="o">.</span><span class="n">Empty</span><span class="p">:</span>
+</span><span id="L-104"><a href="#L-104"><span class="linenos">104</span></a>            <span class="k">pass</span>
+</span><span id="L-105"><a href="#L-105"><span class="linenos">105</span></a>
+</span><span id="L-106"><a href="#L-106"><span class="linenos">106</span></a>    <span class="k">def</span> <span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-107"><a href="#L-107"><span class="linenos">107</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-108"><a href="#L-108"><span class="linenos">108</span></a><span class="sd">        Returns the number of messages in the queue.</span>
+</span><span id="L-109"><a href="#L-109"><span class="linenos">109</span></a>
+</span><span id="L-110"><a href="#L-110"><span class="linenos">110</span></a><span class="sd">        Usage:</span>
+</span><span id="L-111"><a href="#L-111"><span class="linenos">111</span></a><span class="sd">             bunny_mq = BunnyMQ()</span>
+</span><span id="L-112"><a href="#L-112"><span class="linenos">112</span></a><span class="sd">             len(bunny_mq)</span>
+</span><span id="L-113"><a href="#L-113"><span class="linenos">113</span></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="L-114"><a href="#L-114"><span class="linenos">114</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">queue</span><span class="o">.</span><span class="n">qsize</span><span class="p">()</span>
+</span><span id="L-115"><a href="#L-115"><span class="linenos">115</span></a>
+</span><span id="L-116"><a href="#L-116"><span class="linenos">116</span></a>    <span class="k">def</span> <span class="nf">stop</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-117"><a href="#L-117"><span class="linenos">117</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-118"><a href="#L-118"><span class="linenos">118</span></a><span class="sd">        Gracefully stop processing messages and shuts down the queue.   This disallows new</span>
+</span><span id="L-119"><a href="#L-119"><span class="linenos">119</span></a><span class="sd">        messages to be sent and waits up to a period of self.grace_period for the queue to empty:</span>
+</span><span id="L-120"><a href="#L-120"><span class="linenos">120</span></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="L-121"><a href="#L-121"><span class="linenos">121</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">stopping</span> <span class="o">=</span> <span class="kc">True</span>
+</span><span id="L-122"><a href="#L-122"><span class="linenos">122</span></a>        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Stopping queue with: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">queue</span><span class="o">.</span><span class="n">qsize</span><span class="p">()</span><span class="si">}</span><span class="s2"> items left.&quot;</span><span class="p">,</span> <span class="p">{</span>
+</span><span id="L-123"><a href="#L-123"><span class="linenos">123</span></a>            <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span>
+</span><span id="L-124"><a href="#L-124"><span class="linenos">124</span></a>        <span class="p">})</span>
+</span><span id="L-125"><a href="#L-125"><span class="linenos">125</span></a>        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">grace_period</span><span class="p">)):</span>
+</span><span id="L-126"><a href="#L-126"><span class="linenos">126</span></a>            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">queue</span><span class="o">.</span><span class="n">empty</span><span class="p">():</span>
+</span><span id="L-127"><a href="#L-127"><span class="linenos">127</span></a>                <span class="k">break</span>
+</span><span id="L-128"><a href="#L-128"><span class="linenos">128</span></a>            <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+</span><span id="L-129"><a href="#L-129"><span class="linenos">129</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">stopped</span><span class="o">.</span><span class="n">set</span><span class="p">()</span>
+</span><span id="L-130"><a href="#L-130"><span class="linenos">130</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">timeout</span><span class="p">)</span>
+</span><span id="L-131"><a href="#L-131"><span class="linenos">131</span></a>        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Stopped queue with: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">queue</span><span class="o">.</span><span class="n">qsize</span><span class="p">()</span><span class="si">}</span><span class="s2"> items left.&quot;</span><span class="p">,</span> <span class="p">{</span>
+</span><span id="L-132"><a href="#L-132"><span class="linenos">132</span></a>            <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span>
+</span><span id="L-133"><a href="#L-133"><span class="linenos">133</span></a>        <span class="p">})</span>
+</span><span id="L-134"><a href="#L-134"><span class="linenos">134</span></a>
+</span><span id="L-135"><a href="#L-135"><span class="linenos">135</span></a>    <span class="k">def</span> <span class="nf">send_message</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]):</span>
+</span><span id="L-136"><a href="#L-136"><span class="linenos">136</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot; Stores a message in the queue, to processed by any registered handlers&quot;&quot;&quot;</span>
+</span><span id="L-137"><a href="#L-137"><span class="linenos">137</span></a>        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Sending message: </span><span class="si">{</span><span class="n">message</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">})</span>
+</span><span id="L-138"><a href="#L-138"><span class="linenos">138</span></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">stopping</span><span class="p">:</span>
+</span><span id="L-139"><a href="#L-139"><span class="linenos">139</span></a>            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Queue is stopped; blocking message: </span><span class="si">{</span><span class="n">message</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="p">{</span>
+</span><span id="L-140"><a href="#L-140"><span class="linenos">140</span></a>                <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span>
+</span><span id="L-141"><a href="#L-141"><span class="linenos">141</span></a>            <span class="p">})</span>
+</span><span id="L-142"><a href="#L-142"><span class="linenos">142</span></a>        <span class="k">else</span><span class="p">:</span>
+</span><span id="L-143"><a href="#L-143"><span class="linenos">143</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">queue</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+</span><span id="L-144"><a href="#L-144"><span class="linenos">144</span></a>
+</span><span id="L-145"><a href="#L-145"><span class="linenos">145</span></a>    <span class="k">def</span> <span class="nf">__signal_shutdown</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">_signum</span><span class="p">,</span> <span class="n">_frame</span><span class="p">):</span>
+</span><span id="L-146"><a href="#L-146"><span class="linenos">146</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot; Called because of a SIGTERM or SIGINT signal&quot;&quot;&quot;</span>
+</span><span id="L-147"><a href="#L-147"><span class="linenos">147</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span>
 </span></pre></div>
 
 
@@ -254,120 +288,219 @@
     </div>
     <a class="headerlink" href="#BunnyMQ"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="BunnyMQ-12"><a href="#BunnyMQ-12"><span class="linenos"> 12</span></a><span class="k">class</span> <span class="nc">BunnyMQ</span><span class="p">(</span><span class="n">Thread</span><span class="p">):</span>
-</span><span id="BunnyMQ-13"><a href="#BunnyMQ-13"><span class="linenos"> 13</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="BunnyMQ-14"><a href="#BunnyMQ-14"><span class="linenos"> 14</span></a><span class="sd">    Lightweight message queue for intra-process pub-sub communication.</span>
-</span><span id="BunnyMQ-15"><a href="#BunnyMQ-15"><span class="linenos"> 15</span></a>
-</span><span id="BunnyMQ-16"><a href="#BunnyMQ-16"><span class="linenos"> 16</span></a><span class="sd">    Usage:</span>
-</span><span id="BunnyMQ-17"><a href="#BunnyMQ-17"><span class="linenos"> 17</span></a><span class="sd">    ```</span>
-</span><span id="BunnyMQ-18"><a href="#BunnyMQ-18"><span class="linenos"> 18</span></a><span class="sd">    def foo_handler(message):</span>
-</span><span id="BunnyMQ-19"><a href="#BunnyMQ-19"><span class="linenos"> 19</span></a><span class="sd">        print(f&quot;Message: {message}&quot;)</span>
-</span><span id="BunnyMQ-20"><a href="#BunnyMQ-20"><span class="linenos"> 20</span></a>
-</span><span id="BunnyMQ-21"><a href="#BunnyMQ-21"><span class="linenos"> 21</span></a><span class="sd">    bunny = BunnyMQ(timeout=0.1)</span>
-</span><span id="BunnyMQ-22"><a href="#BunnyMQ-22"><span class="linenos"> 22</span></a><span class="sd">    try:</span>
-</span><span id="BunnyMQ-23"><a href="#BunnyMQ-23"><span class="linenos"> 23</span></a><span class="sd">        bunny.register_handler(&quot;foo&quot;, foo_handler)</span>
-</span><span id="BunnyMQ-24"><a href="#BunnyMQ-24"><span class="linenos"> 24</span></a><span class="sd">        bunny.start()</span>
-</span><span id="BunnyMQ-25"><a href="#BunnyMQ-25"><span class="linenos"> 25</span></a><span class="sd">        bunny.send_message(type=&#39;foo&#39;, body=&quot;foobar&quot;)</span>
-</span><span id="BunnyMQ-26"><a href="#BunnyMQ-26"><span class="linenos"> 26</span></a><span class="sd">        time.sleep(1)</span>
-</span><span id="BunnyMQ-27"><a href="#BunnyMQ-27"><span class="linenos"> 27</span></a><span class="sd">    finally:</span>
-</span><span id="BunnyMQ-28"><a href="#BunnyMQ-28"><span class="linenos"> 28</span></a><span class="sd">        bunny.stop()</span>
-</span><span id="BunnyMQ-29"><a href="#BunnyMQ-29"><span class="linenos"> 29</span></a><span class="sd">    ```</span>
-</span><span id="BunnyMQ-30"><a href="#BunnyMQ-30"><span class="linenos"> 30</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="BunnyMQ-31"><a href="#BunnyMQ-31"><span class="linenos"> 31</span></a>
-</span><span id="BunnyMQ-32"><a href="#BunnyMQ-32"><span class="linenos"> 32</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">timeout</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span> <span class="n">interval</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span> <span class="n">grace_period</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">15.0</span><span class="p">):</span>
-</span><span id="BunnyMQ-33"><a href="#BunnyMQ-33"><span class="linenos"> 33</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="BunnyMQ-34"><a href="#BunnyMQ-34"><span class="linenos"> 34</span></a><span class="sd">        Constructs a new BunnyMQ</span>
-</span><span id="BunnyMQ-35"><a href="#BunnyMQ-35"><span class="linenos"> 35</span></a><span class="sd">        :param timeout: Timeout period for thread operations</span>
-</span><span id="BunnyMQ-36"><a href="#BunnyMQ-36"><span class="linenos"> 36</span></a><span class="sd">        :param interval: Interval to sleep when queue is empty</span>
-</span><span id="BunnyMQ-37"><a href="#BunnyMQ-37"><span class="linenos"> 37</span></a><span class="sd">        :param grace_period: How long to wait after stopping to wait for messages in the queue to empty out:</span>
-</span><span id="BunnyMQ-38"><a href="#BunnyMQ-38"><span class="linenos"> 38</span></a><span class="sd">        &quot;&quot;&quot;</span>
-</span><span id="BunnyMQ-39"><a href="#BunnyMQ-39"><span class="linenos"> 39</span></a>        <span class="n">Thread</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
-</span><span id="BunnyMQ-40"><a href="#BunnyMQ-40"><span class="linenos"> 40</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">queue</span> <span class="o">=</span> <span class="n">queue</span><span class="o">.</span><span class="n">Queue</span><span class="p">()</span>
-</span><span id="BunnyMQ-41"><a href="#BunnyMQ-41"><span class="linenos"> 41</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">handlers</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Callable</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
-</span><span id="BunnyMQ-42"><a href="#BunnyMQ-42"><span class="linenos"> 42</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">timeout</span> <span class="o">=</span> <span class="n">timeout</span>
-</span><span id="BunnyMQ-43"><a href="#BunnyMQ-43"><span class="linenos"> 43</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">interval</span> <span class="o">=</span> <span class="n">interval</span>
-</span><span id="BunnyMQ-44"><a href="#BunnyMQ-44"><span class="linenos"> 44</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">grace_period</span> <span class="o">=</span> <span class="n">grace_period</span>
-</span><span id="BunnyMQ-45"><a href="#BunnyMQ-45"><span class="linenos"> 45</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">stopping</span> <span class="o">=</span> <span class="kc">False</span>
-</span><span id="BunnyMQ-46"><a href="#BunnyMQ-46"><span class="linenos"> 46</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">stopped</span> <span class="o">=</span> <span class="n">Event</span><span class="p">()</span>
-</span><span id="BunnyMQ-47"><a href="#BunnyMQ-47"><span class="linenos"> 47</span></a>
-</span><span id="BunnyMQ-48"><a href="#BunnyMQ-48"><span class="linenos"> 48</span></a>    <span class="k">def</span> <span class="nf">register_handler</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message_type</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">handler</span><span class="p">:</span> <span class="n">Callable</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-</span><span id="BunnyMQ-49"><a href="#BunnyMQ-49"><span class="linenos"> 49</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="BunnyMQ-50"><a href="#BunnyMQ-50"><span class="linenos"> 50</span></a><span class="sd">        Registers a handler for given message_typ</span>
-</span><span id="BunnyMQ-51"><a href="#BunnyMQ-51"><span class="linenos"> 51</span></a><span class="sd">        :param message_type: The message type</span>
-</span><span id="BunnyMQ-52"><a href="#BunnyMQ-52"><span class="linenos"> 52</span></a><span class="sd">        :param handler: The callable to register; this will be passed the messag</span>
-</span><span id="BunnyMQ-53"><a href="#BunnyMQ-53"><span class="linenos"> 53</span></a><span class="sd">        &quot;&quot;&quot;</span>
-</span><span id="BunnyMQ-54"><a href="#BunnyMQ-54"><span class="linenos"> 54</span></a>        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Registering handler for </span><span class="si">{</span><span class="n">message_type</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-</span><span id="BunnyMQ-55"><a href="#BunnyMQ-55"><span class="linenos"> 55</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">handlers</span><span class="p">[</span><span class="n">message_type</span><span class="p">]</span> <span class="o">=</span> <span class="n">handler</span>
-</span><span id="BunnyMQ-56"><a href="#BunnyMQ-56"><span class="linenos"> 56</span></a>
-</span><span id="BunnyMQ-57"><a href="#BunnyMQ-57"><span class="linenos"> 57</span></a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="BunnyMQ-58"><a href="#BunnyMQ-58"><span class="linenos"> 58</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="BunnyMQ-59"><a href="#BunnyMQ-59"><span class="linenos"> 59</span></a><span class="sd">        Begin execution of the queue.  this starts the underlying thread, which</span>
-</span><span id="BunnyMQ-60"><a href="#BunnyMQ-60"><span class="linenos"> 60</span></a><span class="sd">        will call `run`.  It also registers handlers for SIGTERM and SIGINT, so we</span>
-</span><span id="BunnyMQ-61"><a href="#BunnyMQ-61"><span class="linenos"> 61</span></a><span class="sd">        can cleanly shut down:</span>
-</span><span id="BunnyMQ-62"><a href="#BunnyMQ-62"><span class="linenos"> 62</span></a><span class="sd">        &quot;&quot;&quot;</span>
-</span><span id="BunnyMQ-63"><a href="#BunnyMQ-63"><span class="linenos"> 63</span></a>        <span class="n">signal</span><span class="o">.</span><span class="n">signal</span><span class="p">(</span><span class="n">signal</span><span class="o">.</span><span class="n">SIGTERM</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__signal_shutdown</span><span class="p">)</span>
-</span><span id="BunnyMQ-64"><a href="#BunnyMQ-64"><span class="linenos"> 64</span></a>        <span class="n">signal</span><span class="o">.</span><span class="n">signal</span><span class="p">(</span><span class="n">signal</span><span class="o">.</span><span class="n">SIGINT</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__signal_shutdown</span><span class="p">)</span>
-</span><span id="BunnyMQ-65"><a href="#BunnyMQ-65"><span class="linenos"> 65</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
-</span><span id="BunnyMQ-66"><a href="#BunnyMQ-66"><span class="linenos"> 66</span></a>
-</span><span id="BunnyMQ-67"><a href="#BunnyMQ-67"><span class="linenos"> 67</span></a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="BunnyMQ-68"><a href="#BunnyMQ-68"><span class="linenos"> 68</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot; This is the underlying Thread&#39;s run method; called via `execute-&gt;start` &quot;&quot;&quot;</span>
-</span><span id="BunnyMQ-69"><a href="#BunnyMQ-69"><span class="linenos"> 69</span></a>        <span class="k">while</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">stopped</span><span class="o">.</span><span class="n">wait</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">timeout</span><span class="p">):</span>
-</span><span id="BunnyMQ-70"><a href="#BunnyMQ-70"><span class="linenos"> 70</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">handle_message</span><span class="p">()</span>
-</span><span id="BunnyMQ-71"><a href="#BunnyMQ-71"><span class="linenos"> 71</span></a>            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">queue</span><span class="o">.</span><span class="n">empty</span><span class="p">():</span>
-</span><span id="BunnyMQ-72"><a href="#BunnyMQ-72"><span class="linenos"> 72</span></a>                <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">interval</span><span class="p">)</span>
+</span><span id="BunnyMQ-13"><a href="#BunnyMQ-13"><span class="linenos"> 13</span></a>    <span class="n">DEFAULT_NAME</span> <span class="o">=</span> <span class="s2">&quot;BunnyMQ&quot;</span>
+</span><span id="BunnyMQ-14"><a href="#BunnyMQ-14"><span class="linenos"> 14</span></a>    <span class="n">WILDCARD_HANDLER</span> <span class="o">=</span> <span class="s2">&quot;*&quot;</span>
+</span><span id="BunnyMQ-15"><a href="#BunnyMQ-15"><span class="linenos"> 15</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="BunnyMQ-16"><a href="#BunnyMQ-16"><span class="linenos"> 16</span></a><span class="sd">    Lightweight message queue for intra-process pub-sub communication.</span>
+</span><span id="BunnyMQ-17"><a href="#BunnyMQ-17"><span class="linenos"> 17</span></a>
+</span><span id="BunnyMQ-18"><a href="#BunnyMQ-18"><span class="linenos"> 18</span></a><span class="sd">    Usage:</span>
+</span><span id="BunnyMQ-19"><a href="#BunnyMQ-19"><span class="linenos"> 19</span></a><span class="sd">    ```</span>
+</span><span id="BunnyMQ-20"><a href="#BunnyMQ-20"><span class="linenos"> 20</span></a><span class="sd">    def foo_handler(message):</span>
+</span><span id="BunnyMQ-21"><a href="#BunnyMQ-21"><span class="linenos"> 21</span></a><span class="sd">        print(f&quot;Message: {message}&quot;)</span>
+</span><span id="BunnyMQ-22"><a href="#BunnyMQ-22"><span class="linenos"> 22</span></a>
+</span><span id="BunnyMQ-23"><a href="#BunnyMQ-23"><span class="linenos"> 23</span></a><span class="sd">    bunny = BunnyMQ(timeout=0.1)</span>
+</span><span id="BunnyMQ-24"><a href="#BunnyMQ-24"><span class="linenos"> 24</span></a><span class="sd">    try:</span>
+</span><span id="BunnyMQ-25"><a href="#BunnyMQ-25"><span class="linenos"> 25</span></a><span class="sd">        bunny.register_handler(&quot;foo&quot;, foo_handler)</span>
+</span><span id="BunnyMQ-26"><a href="#BunnyMQ-26"><span class="linenos"> 26</span></a><span class="sd">        bunny.start()</span>
+</span><span id="BunnyMQ-27"><a href="#BunnyMQ-27"><span class="linenos"> 27</span></a><span class="sd">        bunny.send_message(type=&#39;foo&#39;, body=&quot;foobar&quot;)</span>
+</span><span id="BunnyMQ-28"><a href="#BunnyMQ-28"><span class="linenos"> 28</span></a><span class="sd">        time.sleep(1)</span>
+</span><span id="BunnyMQ-29"><a href="#BunnyMQ-29"><span class="linenos"> 29</span></a><span class="sd">    finally:</span>
+</span><span id="BunnyMQ-30"><a href="#BunnyMQ-30"><span class="linenos"> 30</span></a><span class="sd">        bunny.stop()</span>
+</span><span id="BunnyMQ-31"><a href="#BunnyMQ-31"><span class="linenos"> 31</span></a><span class="sd">    ```</span>
+</span><span id="BunnyMQ-32"><a href="#BunnyMQ-32"><span class="linenos"> 32</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="BunnyMQ-33"><a href="#BunnyMQ-33"><span class="linenos"> 33</span></a>
+</span><span id="BunnyMQ-34"><a href="#BunnyMQ-34"><span class="linenos"> 34</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">DEFAULT_NAME</span><span class="p">,</span> <span class="n">timeout</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span> <span class="n">interval</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span>
+</span><span id="BunnyMQ-35"><a href="#BunnyMQ-35"><span class="linenos"> 35</span></a>                 <span class="n">grace_period</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">15.0</span><span class="p">):</span>
+</span><span id="BunnyMQ-36"><a href="#BunnyMQ-36"><span class="linenos"> 36</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="BunnyMQ-37"><a href="#BunnyMQ-37"><span class="linenos"> 37</span></a><span class="sd">        Constructs a new BunnyMQ</span>
+</span><span id="BunnyMQ-38"><a href="#BunnyMQ-38"><span class="linenos"> 38</span></a><span class="sd">        :param name: Name for given queue, in case you are using multiple..</span>
+</span><span id="BunnyMQ-39"><a href="#BunnyMQ-39"><span class="linenos"> 39</span></a><span class="sd">        :param timeout: Timeout period for thread operations</span>
+</span><span id="BunnyMQ-40"><a href="#BunnyMQ-40"><span class="linenos"> 40</span></a><span class="sd">        :param interval: Interval to sleep when queue is empty</span>
+</span><span id="BunnyMQ-41"><a href="#BunnyMQ-41"><span class="linenos"> 41</span></a><span class="sd">        :param grace_period: How long to wait after stopping to wait for messages in the queue to empty out:</span>
+</span><span id="BunnyMQ-42"><a href="#BunnyMQ-42"><span class="linenos"> 42</span></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="BunnyMQ-43"><a href="#BunnyMQ-43"><span class="linenos"> 43</span></a>        <span class="n">Thread</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+</span><span id="BunnyMQ-44"><a href="#BunnyMQ-44"><span class="linenos"> 44</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+</span><span id="BunnyMQ-45"><a href="#BunnyMQ-45"><span class="linenos"> 45</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">queue</span> <span class="o">=</span> <span class="n">queue</span><span class="o">.</span><span class="n">Queue</span><span class="p">()</span>
+</span><span id="BunnyMQ-46"><a href="#BunnyMQ-46"><span class="linenos"> 46</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">handlers</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Callable</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+</span><span id="BunnyMQ-47"><a href="#BunnyMQ-47"><span class="linenos"> 47</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">timeout</span> <span class="o">=</span> <span class="n">timeout</span>
+</span><span id="BunnyMQ-48"><a href="#BunnyMQ-48"><span class="linenos"> 48</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">interval</span> <span class="o">=</span> <span class="n">interval</span>
+</span><span id="BunnyMQ-49"><a href="#BunnyMQ-49"><span class="linenos"> 49</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">grace_period</span> <span class="o">=</span> <span class="n">grace_period</span>
+</span><span id="BunnyMQ-50"><a href="#BunnyMQ-50"><span class="linenos"> 50</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">stopping</span> <span class="o">=</span> <span class="kc">False</span>
+</span><span id="BunnyMQ-51"><a href="#BunnyMQ-51"><span class="linenos"> 51</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">stopped</span> <span class="o">=</span> <span class="n">Event</span><span class="p">()</span>
+</span><span id="BunnyMQ-52"><a href="#BunnyMQ-52"><span class="linenos"> 52</span></a>
+</span><span id="BunnyMQ-53"><a href="#BunnyMQ-53"><span class="linenos"> 53</span></a>    <span class="k">def</span> <span class="nf">register_handler</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message_type</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">handler</span><span class="p">:</span> <span class="n">Callable</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="BunnyMQ-54"><a href="#BunnyMQ-54"><span class="linenos"> 54</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="BunnyMQ-55"><a href="#BunnyMQ-55"><span class="linenos"> 55</span></a><span class="sd">        Registers a handler for given message_typ</span>
+</span><span id="BunnyMQ-56"><a href="#BunnyMQ-56"><span class="linenos"> 56</span></a><span class="sd">        :param message_type: The message type.  Use WILDCARD_HANDLER for all messages.</span>
+</span><span id="BunnyMQ-57"><a href="#BunnyMQ-57"><span class="linenos"> 57</span></a><span class="sd">        :param handler: The callable to register; this will be passed the messag</span>
+</span><span id="BunnyMQ-58"><a href="#BunnyMQ-58"><span class="linenos"> 58</span></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="BunnyMQ-59"><a href="#BunnyMQ-59"><span class="linenos"> 59</span></a>        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Registering handler for </span><span class="si">{</span><span class="n">message_type</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</span><span id="BunnyMQ-60"><a href="#BunnyMQ-60"><span class="linenos"> 60</span></a>        <span class="n">handlers</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">handlers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">message_type</span><span class="p">,</span> <span class="p">[])</span>
+</span><span id="BunnyMQ-61"><a href="#BunnyMQ-61"><span class="linenos"> 61</span></a>        <span class="n">handlers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">handler</span><span class="p">)</span>
+</span><span id="BunnyMQ-62"><a href="#BunnyMQ-62"><span class="linenos"> 62</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">handlers</span><span class="p">[</span><span class="n">message_type</span><span class="p">]</span> <span class="o">=</span> <span class="n">handlers</span>
+</span><span id="BunnyMQ-63"><a href="#BunnyMQ-63"><span class="linenos"> 63</span></a>
+</span><span id="BunnyMQ-64"><a href="#BunnyMQ-64"><span class="linenos"> 64</span></a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="BunnyMQ-65"><a href="#BunnyMQ-65"><span class="linenos"> 65</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="BunnyMQ-66"><a href="#BunnyMQ-66"><span class="linenos"> 66</span></a><span class="sd">        Begin execution of the queue.  this starts the underlying thread, which</span>
+</span><span id="BunnyMQ-67"><a href="#BunnyMQ-67"><span class="linenos"> 67</span></a><span class="sd">        will call `run`.  It also registers handlers for SIGTERM and SIGINT, so we</span>
+</span><span id="BunnyMQ-68"><a href="#BunnyMQ-68"><span class="linenos"> 68</span></a><span class="sd">        can cleanly shut down:</span>
+</span><span id="BunnyMQ-69"><a href="#BunnyMQ-69"><span class="linenos"> 69</span></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="BunnyMQ-70"><a href="#BunnyMQ-70"><span class="linenos"> 70</span></a>        <span class="n">signal</span><span class="o">.</span><span class="n">signal</span><span class="p">(</span><span class="n">signal</span><span class="o">.</span><span class="n">SIGTERM</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__signal_shutdown</span><span class="p">)</span>
+</span><span id="BunnyMQ-71"><a href="#BunnyMQ-71"><span class="linenos"> 71</span></a>        <span class="n">signal</span><span class="o">.</span><span class="n">signal</span><span class="p">(</span><span class="n">signal</span><span class="o">.</span><span class="n">SIGINT</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__signal_shutdown</span><span class="p">)</span>
+</span><span id="BunnyMQ-72"><a href="#BunnyMQ-72"><span class="linenos"> 72</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
 </span><span id="BunnyMQ-73"><a href="#BunnyMQ-73"><span class="linenos"> 73</span></a>
-</span><span id="BunnyMQ-74"><a href="#BunnyMQ-74"><span class="linenos"> 74</span></a>    <span class="k">def</span> <span class="nf">handle_message</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="BunnyMQ-75"><a href="#BunnyMQ-75"><span class="linenos"> 75</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="BunnyMQ-76"><a href="#BunnyMQ-76"><span class="linenos"> 76</span></a><span class="sd">        Handles the next message from the queue; calling any registered</span>
-</span><span id="BunnyMQ-77"><a href="#BunnyMQ-77"><span class="linenos"> 77</span></a><span class="sd">        handlers with the message</span>
-</span><span id="BunnyMQ-78"><a href="#BunnyMQ-78"><span class="linenos"> 78</span></a><span class="sd">        &quot;&quot;&quot;</span>
-</span><span id="BunnyMQ-79"><a href="#BunnyMQ-79"><span class="linenos"> 79</span></a>        <span class="k">try</span><span class="p">:</span>
-</span><span id="BunnyMQ-80"><a href="#BunnyMQ-80"><span class="linenos"> 80</span></a>            <span class="n">message</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">queue</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">block</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-</span><span id="BunnyMQ-81"><a href="#BunnyMQ-81"><span class="linenos"> 81</span></a>            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Received message: </span><span class="si">{</span><span class="n">message</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-</span><span id="BunnyMQ-82"><a href="#BunnyMQ-82"><span class="linenos"> 82</span></a>            <span class="n">message_type</span> <span class="o">=</span> <span class="n">message</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span>
-</span><span id="BunnyMQ-83"><a href="#BunnyMQ-83"><span class="linenos"> 83</span></a>            <span class="n">handler</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">handlers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">message_type</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-</span><span id="BunnyMQ-84"><a href="#BunnyMQ-84"><span class="linenos"> 84</span></a>            <span class="n">handler</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
-</span><span id="BunnyMQ-85"><a href="#BunnyMQ-85"><span class="linenos"> 85</span></a>        <span class="k">except</span> <span class="n">queue</span><span class="o">.</span><span class="n">Empty</span><span class="p">:</span>
-</span><span id="BunnyMQ-86"><a href="#BunnyMQ-86"><span class="linenos"> 86</span></a>            <span class="k">pass</span>
-</span><span id="BunnyMQ-87"><a href="#BunnyMQ-87"><span class="linenos"> 87</span></a>
-</span><span id="BunnyMQ-88"><a href="#BunnyMQ-88"><span class="linenos"> 88</span></a>    <span class="k">def</span> <span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="BunnyMQ-89"><a href="#BunnyMQ-89"><span class="linenos"> 89</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="BunnyMQ-90"><a href="#BunnyMQ-90"><span class="linenos"> 90</span></a><span class="sd">        Returns the number of messages in the queue.</span>
-</span><span id="BunnyMQ-91"><a href="#BunnyMQ-91"><span class="linenos"> 91</span></a>
-</span><span id="BunnyMQ-92"><a href="#BunnyMQ-92"><span class="linenos"> 92</span></a><span class="sd">        Usage:</span>
-</span><span id="BunnyMQ-93"><a href="#BunnyMQ-93"><span class="linenos"> 93</span></a><span class="sd">             bunny_mq = BunnyMQ()</span>
-</span><span id="BunnyMQ-94"><a href="#BunnyMQ-94"><span class="linenos"> 94</span></a><span class="sd">             len(bunny_mq)</span>
-</span><span id="BunnyMQ-95"><a href="#BunnyMQ-95"><span class="linenos"> 95</span></a><span class="sd">        &quot;&quot;&quot;</span>
-</span><span id="BunnyMQ-96"><a href="#BunnyMQ-96"><span class="linenos"> 96</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">queue</span><span class="o">.</span><span class="n">qsize</span><span class="p">()</span>
+</span><span id="BunnyMQ-74"><a href="#BunnyMQ-74"><span class="linenos"> 74</span></a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="BunnyMQ-75"><a href="#BunnyMQ-75"><span class="linenos"> 75</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot; This is the underlying Thread&#39;s run method; called via `execute-&gt;start` &quot;&quot;&quot;</span>
+</span><span id="BunnyMQ-76"><a href="#BunnyMQ-76"><span class="linenos"> 76</span></a>        <span class="k">while</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">stopped</span><span class="o">.</span><span class="n">wait</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">timeout</span><span class="p">):</span>
+</span><span id="BunnyMQ-77"><a href="#BunnyMQ-77"><span class="linenos"> 77</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">handle_message</span><span class="p">()</span>
+</span><span id="BunnyMQ-78"><a href="#BunnyMQ-78"><span class="linenos"> 78</span></a>            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">queue</span><span class="o">.</span><span class="n">empty</span><span class="p">():</span>
+</span><span id="BunnyMQ-79"><a href="#BunnyMQ-79"><span class="linenos"> 79</span></a>                <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">interval</span><span class="p">)</span>
+</span><span id="BunnyMQ-80"><a href="#BunnyMQ-80"><span class="linenos"> 80</span></a>
+</span><span id="BunnyMQ-81"><a href="#BunnyMQ-81"><span class="linenos"> 81</span></a>    <span class="k">def</span> <span class="nf">handle_message</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="BunnyMQ-82"><a href="#BunnyMQ-82"><span class="linenos"> 82</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="BunnyMQ-83"><a href="#BunnyMQ-83"><span class="linenos"> 83</span></a><span class="sd">        Handles the next message from the queue; calling any registered</span>
+</span><span id="BunnyMQ-84"><a href="#BunnyMQ-84"><span class="linenos"> 84</span></a><span class="sd">        handlers with the message</span>
+</span><span id="BunnyMQ-85"><a href="#BunnyMQ-85"><span class="linenos"> 85</span></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="BunnyMQ-86"><a href="#BunnyMQ-86"><span class="linenos"> 86</span></a>        <span class="k">try</span><span class="p">:</span>
+</span><span id="BunnyMQ-87"><a href="#BunnyMQ-87"><span class="linenos"> 87</span></a>            <span class="n">message</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">queue</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">block</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</span><span id="BunnyMQ-88"><a href="#BunnyMQ-88"><span class="linenos"> 88</span></a>            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Received message: </span><span class="si">{</span><span class="n">message</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="p">{</span>
+</span><span id="BunnyMQ-89"><a href="#BunnyMQ-89"><span class="linenos"> 89</span></a>                <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span>
+</span><span id="BunnyMQ-90"><a href="#BunnyMQ-90"><span class="linenos"> 90</span></a>            <span class="p">})</span>
+</span><span id="BunnyMQ-91"><a href="#BunnyMQ-91"><span class="linenos"> 91</span></a>            <span class="n">message_type</span> <span class="o">=</span> <span class="n">message</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;type&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+</span><span id="BunnyMQ-92"><a href="#BunnyMQ-92"><span class="linenos"> 92</span></a>            <span class="k">if</span> <span class="n">message_type</span><span class="p">:</span>
+</span><span id="BunnyMQ-93"><a href="#BunnyMQ-93"><span class="linenos"> 93</span></a>                <span class="n">handlers</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">handlers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">message_type</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+</span><span id="BunnyMQ-94"><a href="#BunnyMQ-94"><span class="linenos"> 94</span></a>                <span class="k">if</span> <span class="n">handlers</span><span class="p">:</span>
+</span><span id="BunnyMQ-95"><a href="#BunnyMQ-95"><span class="linenos"> 95</span></a>                    <span class="k">for</span> <span class="n">handler</span> <span class="ow">in</span> <span class="n">handlers</span><span class="p">:</span>
+</span><span id="BunnyMQ-96"><a href="#BunnyMQ-96"><span class="linenos"> 96</span></a>                        <span class="n">handler</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
 </span><span id="BunnyMQ-97"><a href="#BunnyMQ-97"><span class="linenos"> 97</span></a>
-</span><span id="BunnyMQ-98"><a href="#BunnyMQ-98"><span class="linenos"> 98</span></a>    <span class="k">def</span> <span class="nf">stop</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="BunnyMQ-99"><a href="#BunnyMQ-99"><span class="linenos"> 99</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="BunnyMQ-100"><a href="#BunnyMQ-100"><span class="linenos">100</span></a><span class="sd">        Stop processing messages and shuts down the queue.   This disallows new messages</span>
-</span><span id="BunnyMQ-101"><a href="#BunnyMQ-101"><span class="linenos">101</span></a><span class="sd">        shuttint down, and waits up to a period of self.grace_period for the queue to empty:</span>
-</span><span id="BunnyMQ-102"><a href="#BunnyMQ-102"><span class="linenos">102</span></a><span class="sd">        &quot;&quot;&quot;</span>
-</span><span id="BunnyMQ-103"><a href="#BunnyMQ-103"><span class="linenos">103</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">stopping</span> <span class="o">=</span> <span class="kc">True</span>
-</span><span id="BunnyMQ-104"><a href="#BunnyMQ-104"><span class="linenos">104</span></a>        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Stopping queue with: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">queue</span><span class="o">.</span><span class="n">qsize</span><span class="p">()</span><span class="si">}</span><span class="s2"> items left.&quot;</span><span class="p">)</span>
-</span><span id="BunnyMQ-105"><a href="#BunnyMQ-105"><span class="linenos">105</span></a>        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">grace_period</span><span class="p">)):</span>
-</span><span id="BunnyMQ-106"><a href="#BunnyMQ-106"><span class="linenos">106</span></a>            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">queue</span><span class="o">.</span><span class="n">empty</span><span class="p">():</span>
-</span><span id="BunnyMQ-107"><a href="#BunnyMQ-107"><span class="linenos">107</span></a>                <span class="k">break</span>
-</span><span id="BunnyMQ-108"><a href="#BunnyMQ-108"><span class="linenos">108</span></a>            <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
-</span><span id="BunnyMQ-109"><a href="#BunnyMQ-109"><span class="linenos">109</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">stopped</span><span class="o">.</span><span class="n">set</span><span class="p">()</span>
-</span><span id="BunnyMQ-110"><a href="#BunnyMQ-110"><span class="linenos">110</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">timeout</span><span class="p">)</span>
-</span><span id="BunnyMQ-111"><a href="#BunnyMQ-111"><span class="linenos">111</span></a>        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Stopped queue with: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">queue</span><span class="o">.</span><span class="n">qsize</span><span class="p">()</span><span class="si">}</span><span class="s2"> items left.&quot;</span><span class="p">)</span>
-</span><span id="BunnyMQ-112"><a href="#BunnyMQ-112"><span class="linenos">112</span></a>
-</span><span id="BunnyMQ-113"><a href="#BunnyMQ-113"><span class="linenos">113</span></a>    <span class="k">def</span> <span class="nf">send_message</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]):</span>
-</span><span id="BunnyMQ-114"><a href="#BunnyMQ-114"><span class="linenos">114</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot; Stores a message in the queue, to processed by any registered handlers&quot;&quot;&quot;</span>
-</span><span id="BunnyMQ-115"><a href="#BunnyMQ-115"><span class="linenos">115</span></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">stopping</span><span class="p">:</span>
-</span><span id="BunnyMQ-116"><a href="#BunnyMQ-116"><span class="linenos">116</span></a>            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Queue is stopped; blocking message: </span><span class="si">{</span><span class="n">message</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-</span><span id="BunnyMQ-117"><a href="#BunnyMQ-117"><span class="linenos">117</span></a>        <span class="k">else</span><span class="p">:</span>
-</span><span id="BunnyMQ-118"><a href="#BunnyMQ-118"><span class="linenos">118</span></a>            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Sending message: </span><span class="si">{</span><span class="n">message</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-</span><span id="BunnyMQ-119"><a href="#BunnyMQ-119"><span class="linenos">119</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">queue</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
-</span><span id="BunnyMQ-120"><a href="#BunnyMQ-120"><span class="linenos">120</span></a>
-</span><span id="BunnyMQ-121"><a href="#BunnyMQ-121"><span class="linenos">121</span></a>    <span class="k">def</span> <span class="nf">__signal_shutdown</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">_signum</span><span class="p">,</span> <span class="n">_frame</span><span class="p">):</span>
-</span><span id="BunnyMQ-122"><a href="#BunnyMQ-122"><span class="linenos">122</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot; Called because of a SIGTERM or SIGINT signal&quot;&quot;&quot;</span>
-</span><span id="BunnyMQ-123"><a href="#BunnyMQ-123"><span class="linenos">123</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span>
+</span><span id="BunnyMQ-98"><a href="#BunnyMQ-98"><span class="linenos"> 98</span></a>            <span class="c1"># Check for wildcard handlers:</span>
+</span><span id="BunnyMQ-99"><a href="#BunnyMQ-99"><span class="linenos"> 99</span></a>            <span class="n">handlers</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">handlers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">WILDCARD_HANDLER</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+</span><span id="BunnyMQ-100"><a href="#BunnyMQ-100"><span class="linenos">100</span></a>            <span class="k">if</span> <span class="n">handlers</span><span class="p">:</span>
+</span><span id="BunnyMQ-101"><a href="#BunnyMQ-101"><span class="linenos">101</span></a>                <span class="k">for</span> <span class="n">handler</span> <span class="ow">in</span> <span class="n">handlers</span><span class="p">:</span>
+</span><span id="BunnyMQ-102"><a href="#BunnyMQ-102"><span class="linenos">102</span></a>                    <span class="n">handler</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+</span><span id="BunnyMQ-103"><a href="#BunnyMQ-103"><span class="linenos">103</span></a>
+</span><span id="BunnyMQ-104"><a href="#BunnyMQ-104"><span class="linenos">104</span></a>        <span class="k">except</span> <span class="n">queue</span><span class="o">.</span><span class="n">Empty</span><span class="p">:</span>
+</span><span id="BunnyMQ-105"><a href="#BunnyMQ-105"><span class="linenos">105</span></a>            <span class="k">pass</span>
+</span><span id="BunnyMQ-106"><a href="#BunnyMQ-106"><span class="linenos">106</span></a>
+</span><span id="BunnyMQ-107"><a href="#BunnyMQ-107"><span class="linenos">107</span></a>    <span class="k">def</span> <span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="BunnyMQ-108"><a href="#BunnyMQ-108"><span class="linenos">108</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="BunnyMQ-109"><a href="#BunnyMQ-109"><span class="linenos">109</span></a><span class="sd">        Returns the number of messages in the queue.</span>
+</span><span id="BunnyMQ-110"><a href="#BunnyMQ-110"><span class="linenos">110</span></a>
+</span><span id="BunnyMQ-111"><a href="#BunnyMQ-111"><span class="linenos">111</span></a><span class="sd">        Usage:</span>
+</span><span id="BunnyMQ-112"><a href="#BunnyMQ-112"><span class="linenos">112</span></a><span class="sd">             bunny_mq = BunnyMQ()</span>
+</span><span id="BunnyMQ-113"><a href="#BunnyMQ-113"><span class="linenos">113</span></a><span class="sd">             len(bunny_mq)</span>
+</span><span id="BunnyMQ-114"><a href="#BunnyMQ-114"><span class="linenos">114</span></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="BunnyMQ-115"><a href="#BunnyMQ-115"><span class="linenos">115</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">queue</span><span class="o">.</span><span class="n">qsize</span><span class="p">()</span>
+</span><span id="BunnyMQ-116"><a href="#BunnyMQ-116"><span class="linenos">116</span></a>
+</span><span id="BunnyMQ-117"><a href="#BunnyMQ-117"><span class="linenos">117</span></a>    <span class="k">def</span> <span class="nf">stop</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="BunnyMQ-118"><a href="#BunnyMQ-118"><span class="linenos">118</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="BunnyMQ-119"><a href="#BunnyMQ-119"><span class="linenos">119</span></a><span class="sd">        Gracefully stop processing messages and shuts down the queue.   This disallows new</span>
+</span><span id="BunnyMQ-120"><a href="#BunnyMQ-120"><span class="linenos">120</span></a><span class="sd">        messages to be sent and waits up to a period of self.grace_period for the queue to empty:</span>
+</span><span id="BunnyMQ-121"><a href="#BunnyMQ-121"><span class="linenos">121</span></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="BunnyMQ-122"><a href="#BunnyMQ-122"><span class="linenos">122</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">stopping</span> <span class="o">=</span> <span class="kc">True</span>
+</span><span id="BunnyMQ-123"><a href="#BunnyMQ-123"><span class="linenos">123</span></a>        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Stopping queue with: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">queue</span><span class="o">.</span><span class="n">qsize</span><span class="p">()</span><span class="si">}</span><span class="s2"> items left.&quot;</span><span class="p">,</span> <span class="p">{</span>
+</span><span id="BunnyMQ-124"><a href="#BunnyMQ-124"><span class="linenos">124</span></a>            <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span>
+</span><span id="BunnyMQ-125"><a href="#BunnyMQ-125"><span class="linenos">125</span></a>        <span class="p">})</span>
+</span><span id="BunnyMQ-126"><a href="#BunnyMQ-126"><span class="linenos">126</span></a>        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">grace_period</span><span class="p">)):</span>
+</span><span id="BunnyMQ-127"><a href="#BunnyMQ-127"><span class="linenos">127</span></a>            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">queue</span><span class="o">.</span><span class="n">empty</span><span class="p">():</span>
+</span><span id="BunnyMQ-128"><a href="#BunnyMQ-128"><span class="linenos">128</span></a>                <span class="k">break</span>
+</span><span id="BunnyMQ-129"><a href="#BunnyMQ-129"><span class="linenos">129</span></a>            <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+</span><span id="BunnyMQ-130"><a href="#BunnyMQ-130"><span class="linenos">130</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">stopped</span><span class="o">.</span><span class="n">set</span><span class="p">()</span>
+</span><span id="BunnyMQ-131"><a href="#BunnyMQ-131"><span class="linenos">131</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">timeout</span><span class="p">)</span>
+</span><span id="BunnyMQ-132"><a href="#BunnyMQ-132"><span class="linenos">132</span></a>        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Stopped queue with: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">queue</span><span class="o">.</span><span class="n">qsize</span><span class="p">()</span><span class="si">}</span><span class="s2"> items left.&quot;</span><span class="p">,</span> <span class="p">{</span>
+</span><span id="BunnyMQ-133"><a href="#BunnyMQ-133"><span class="linenos">133</span></a>            <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span>
+</span><span id="BunnyMQ-134"><a href="#BunnyMQ-134"><span class="linenos">134</span></a>        <span class="p">})</span>
+</span><span id="BunnyMQ-135"><a href="#BunnyMQ-135"><span class="linenos">135</span></a>
+</span><span id="BunnyMQ-136"><a href="#BunnyMQ-136"><span class="linenos">136</span></a>    <span class="k">def</span> <span class="nf">send_message</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]):</span>
+</span><span id="BunnyMQ-137"><a href="#BunnyMQ-137"><span class="linenos">137</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot; Stores a message in the queue, to processed by any registered handlers&quot;&quot;&quot;</span>
+</span><span id="BunnyMQ-138"><a href="#BunnyMQ-138"><span class="linenos">138</span></a>        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Sending message: </span><span class="si">{</span><span class="n">message</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">})</span>
+</span><span id="BunnyMQ-139"><a href="#BunnyMQ-139"><span class="linenos">139</span></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">stopping</span><span class="p">:</span>
+</span><span id="BunnyMQ-140"><a href="#BunnyMQ-140"><span class="linenos">140</span></a>            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Queue is stopped; blocking message: </span><span class="si">{</span><span class="n">message</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="p">{</span>
+</span><span id="BunnyMQ-141"><a href="#BunnyMQ-141"><span class="linenos">141</span></a>                <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span>
+</span><span id="BunnyMQ-142"><a href="#BunnyMQ-142"><span class="linenos">142</span></a>            <span class="p">})</span>
+</span><span id="BunnyMQ-143"><a href="#BunnyMQ-143"><span class="linenos">143</span></a>        <span class="k">else</span><span class="p">:</span>
+</span><span id="BunnyMQ-144"><a href="#BunnyMQ-144"><span class="linenos">144</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">queue</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+</span><span id="BunnyMQ-145"><a href="#BunnyMQ-145"><span class="linenos">145</span></a>
+</span><span id="BunnyMQ-146"><a href="#BunnyMQ-146"><span class="linenos">146</span></a>    <span class="k">def</span> <span class="nf">__signal_shutdown</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">_signum</span><span class="p">,</span> <span class="n">_frame</span><span class="p">):</span>
+</span><span id="BunnyMQ-147"><a href="#BunnyMQ-147"><span class="linenos">147</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot; Called because of a SIGTERM or SIGINT signal&quot;&quot;&quot;</span>
+</span><span id="BunnyMQ-148"><a href="#BunnyMQ-148"><span class="linenos">148</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span>
 </span></pre></div>
 
 
+            <div class="docstring"><p>A class that represents a thread of control.</p>
+
+<p>This class can be safely subclassed in a limited fashion. There are two ways
+to specify the activity: by passing a callable object to the constructor, or
+by overriding the run() method in a subclass.</p>
+</div>
+
+
+                            <div id="BunnyMQ.__init__" class="classattr">
+                                        <input id="BunnyMQ.__init__-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+<div class="attr function">
+            
+        <span class="name">BunnyMQ</span><span class="signature pdoc-code multiline">(<span class="param">	<span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;BunnyMQ&#39;</span>,</span><span class="param">	<span class="n">timeout</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span>,</span><span class="param">	<span class="n">interval</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span>,</span><span class="param">	<span class="n">grace_period</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">15.0</span></span>)</span>
+
+                <label class="view-source-button" for="BunnyMQ.__init__-view-source"><span>View Source</span></label>
+
+    </div>
+    <a class="headerlink" href="#BunnyMQ.__init__"></a>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="BunnyMQ.__init__-34"><a href="#BunnyMQ.__init__-34"><span class="linenos">34</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">DEFAULT_NAME</span><span class="p">,</span> <span class="n">timeout</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span> <span class="n">interval</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span>
+</span><span id="BunnyMQ.__init__-35"><a href="#BunnyMQ.__init__-35"><span class="linenos">35</span></a>                 <span class="n">grace_period</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">15.0</span><span class="p">):</span>
+</span><span id="BunnyMQ.__init__-36"><a href="#BunnyMQ.__init__-36"><span class="linenos">36</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="BunnyMQ.__init__-37"><a href="#BunnyMQ.__init__-37"><span class="linenos">37</span></a><span class="sd">        Constructs a new BunnyMQ</span>
+</span><span id="BunnyMQ.__init__-38"><a href="#BunnyMQ.__init__-38"><span class="linenos">38</span></a><span class="sd">        :param name: Name for given queue, in case you are using multiple..</span>
+</span><span id="BunnyMQ.__init__-39"><a href="#BunnyMQ.__init__-39"><span class="linenos">39</span></a><span class="sd">        :param timeout: Timeout period for thread operations</span>
+</span><span id="BunnyMQ.__init__-40"><a href="#BunnyMQ.__init__-40"><span class="linenos">40</span></a><span class="sd">        :param interval: Interval to sleep when queue is empty</span>
+</span><span id="BunnyMQ.__init__-41"><a href="#BunnyMQ.__init__-41"><span class="linenos">41</span></a><span class="sd">        :param grace_period: How long to wait after stopping to wait for messages in the queue to empty out:</span>
+</span><span id="BunnyMQ.__init__-42"><a href="#BunnyMQ.__init__-42"><span class="linenos">42</span></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="BunnyMQ.__init__-43"><a href="#BunnyMQ.__init__-43"><span class="linenos">43</span></a>        <span class="n">Thread</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+</span><span id="BunnyMQ.__init__-44"><a href="#BunnyMQ.__init__-44"><span class="linenos">44</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+</span><span id="BunnyMQ.__init__-45"><a href="#BunnyMQ.__init__-45"><span class="linenos">45</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">queue</span> <span class="o">=</span> <span class="n">queue</span><span class="o">.</span><span class="n">Queue</span><span class="p">()</span>
+</span><span id="BunnyMQ.__init__-46"><a href="#BunnyMQ.__init__-46"><span class="linenos">46</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">handlers</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Callable</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+</span><span id="BunnyMQ.__init__-47"><a href="#BunnyMQ.__init__-47"><span class="linenos">47</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">timeout</span> <span class="o">=</span> <span class="n">timeout</span>
+</span><span id="BunnyMQ.__init__-48"><a href="#BunnyMQ.__init__-48"><span class="linenos">48</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">interval</span> <span class="o">=</span> <span class="n">interval</span>
+</span><span id="BunnyMQ.__init__-49"><a href="#BunnyMQ.__init__-49"><span class="linenos">49</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">grace_period</span> <span class="o">=</span> <span class="n">grace_period</span>
+</span><span id="BunnyMQ.__init__-50"><a href="#BunnyMQ.__init__-50"><span class="linenos">50</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">stopping</span> <span class="o">=</span> <span class="kc">False</span>
+</span><span id="BunnyMQ.__init__-51"><a href="#BunnyMQ.__init__-51"><span class="linenos">51</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">stopped</span> <span class="o">=</span> <span class="n">Event</span><span class="p">()</span>
+</span></pre></div>
+
+
+            <div class="docstring"><p>Constructs a new BunnyMQ</p>
+
+<h6 id="parameters">Parameters</h6>
+
+<ul>
+<li><strong>name</strong>:  Name for given queue, in case you are using multiple..</li>
+<li><strong>timeout</strong>:  Timeout period for thread operations</li>
+<li><strong>interval</strong>:  Interval to sleep when queue is empty</li>
+<li><strong>grace_period: How long to wait after stopping to wait for messages in the queue to empty out</strong>: </li>
+</ul>
+</div>
+
+
+                            </div>
+                            <div id="BunnyMQ.DEFAULT_NAME" class="classattr">
+                                <div class="attr variable">
+            <span class="name">DEFAULT_NAME</span>        =
+<span class="default_value">&#39;BunnyMQ&#39;</span>
+
+        
+    </div>
+    <a class="headerlink" href="#BunnyMQ.DEFAULT_NAME"></a>
+    
+    
+
+                            </div>
+                            <div id="BunnyMQ.WILDCARD_HANDLER" class="classattr">
+                                <div class="attr variable">
+            <span class="name">WILDCARD_HANDLER</span>        =
+<span class="default_value">&#39;*&#39;</span>
+
+        
+    </div>
+    <a class="headerlink" href="#BunnyMQ.WILDCARD_HANDLER"></a>
+    
             <div class="docstring"><p>Lightweight message queue for intra-process pub-sub communication.</p>
 
 <p>Usage:</p>
@@ -387,43 +520,33 @@ finally:
 </div>
 
 
-                            <div id="BunnyMQ.__init__" class="classattr">
-                                        <input id="BunnyMQ.__init__-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
-<div class="attr function">
-            
-        <span class="name">BunnyMQ</span><span class="signature pdoc-code multiline">(<span class="param">	<span class="n">timeout</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span>,</span><span class="param">	<span class="n">interval</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span>,</span><span class="param">	<span class="n">grace_period</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">15.0</span></span>)</span>
+                            </div>
+                            <div id="BunnyMQ.name" class="classattr">
+                                        <input id="BunnyMQ.name-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+<div class="attr variable">
+            <span class="name">name</span>
 
-                <label class="view-source-button" for="BunnyMQ.__init__-view-source"><span>View Source</span></label>
+                <label class="view-source-button" for="BunnyMQ.name-view-source"><span>View Source</span></label>
 
     </div>
-    <a class="headerlink" href="#BunnyMQ.__init__"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="BunnyMQ.__init__-32"><a href="#BunnyMQ.__init__-32"><span class="linenos">32</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">timeout</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span> <span class="n">interval</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span> <span class="n">grace_period</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">15.0</span><span class="p">):</span>
-</span><span id="BunnyMQ.__init__-33"><a href="#BunnyMQ.__init__-33"><span class="linenos">33</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="BunnyMQ.__init__-34"><a href="#BunnyMQ.__init__-34"><span class="linenos">34</span></a><span class="sd">        Constructs a new BunnyMQ</span>
-</span><span id="BunnyMQ.__init__-35"><a href="#BunnyMQ.__init__-35"><span class="linenos">35</span></a><span class="sd">        :param timeout: Timeout period for thread operations</span>
-</span><span id="BunnyMQ.__init__-36"><a href="#BunnyMQ.__init__-36"><span class="linenos">36</span></a><span class="sd">        :param interval: Interval to sleep when queue is empty</span>
-</span><span id="BunnyMQ.__init__-37"><a href="#BunnyMQ.__init__-37"><span class="linenos">37</span></a><span class="sd">        :param grace_period: How long to wait after stopping to wait for messages in the queue to empty out:</span>
-</span><span id="BunnyMQ.__init__-38"><a href="#BunnyMQ.__init__-38"><span class="linenos">38</span></a><span class="sd">        &quot;&quot;&quot;</span>
-</span><span id="BunnyMQ.__init__-39"><a href="#BunnyMQ.__init__-39"><span class="linenos">39</span></a>        <span class="n">Thread</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
-</span><span id="BunnyMQ.__init__-40"><a href="#BunnyMQ.__init__-40"><span class="linenos">40</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">queue</span> <span class="o">=</span> <span class="n">queue</span><span class="o">.</span><span class="n">Queue</span><span class="p">()</span>
-</span><span id="BunnyMQ.__init__-41"><a href="#BunnyMQ.__init__-41"><span class="linenos">41</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">handlers</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Callable</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
-</span><span id="BunnyMQ.__init__-42"><a href="#BunnyMQ.__init__-42"><span class="linenos">42</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">timeout</span> <span class="o">=</span> <span class="n">timeout</span>
-</span><span id="BunnyMQ.__init__-43"><a href="#BunnyMQ.__init__-43"><span class="linenos">43</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">interval</span> <span class="o">=</span> <span class="n">interval</span>
-</span><span id="BunnyMQ.__init__-44"><a href="#BunnyMQ.__init__-44"><span class="linenos">44</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">grace_period</span> <span class="o">=</span> <span class="n">grace_period</span>
-</span><span id="BunnyMQ.__init__-45"><a href="#BunnyMQ.__init__-45"><span class="linenos">45</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">stopping</span> <span class="o">=</span> <span class="kc">False</span>
-</span><span id="BunnyMQ.__init__-46"><a href="#BunnyMQ.__init__-46"><span class="linenos">46</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">stopped</span> <span class="o">=</span> <span class="n">Event</span><span class="p">()</span>
+    <a class="headerlink" href="#BunnyMQ.name"></a>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="BunnyMQ.name-1181"><a href="#BunnyMQ.name-1181"><span class="linenos">1181</span></a>    <span class="nd">@property</span>
+</span><span id="BunnyMQ.name-1182"><a href="#BunnyMQ.name-1182"><span class="linenos">1182</span></a>    <span class="k">def</span> <span class="nf">name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="BunnyMQ.name-1183"><a href="#BunnyMQ.name-1183"><span class="linenos">1183</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;A string used for identification purposes only.</span>
+</span><span id="BunnyMQ.name-1184"><a href="#BunnyMQ.name-1184"><span class="linenos">1184</span></a>
+</span><span id="BunnyMQ.name-1185"><a href="#BunnyMQ.name-1185"><span class="linenos">1185</span></a><span class="sd">        It has no semantics. Multiple threads may be given the same name. The</span>
+</span><span id="BunnyMQ.name-1186"><a href="#BunnyMQ.name-1186"><span class="linenos">1186</span></a><span class="sd">        initial name is set by the constructor.</span>
+</span><span id="BunnyMQ.name-1187"><a href="#BunnyMQ.name-1187"><span class="linenos">1187</span></a>
+</span><span id="BunnyMQ.name-1188"><a href="#BunnyMQ.name-1188"><span class="linenos">1188</span></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="BunnyMQ.name-1189"><a href="#BunnyMQ.name-1189"><span class="linenos">1189</span></a>        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">_initialized</span><span class="p">,</span> <span class="s2">&quot;Thread.__init__() not called&quot;</span>
+</span><span id="BunnyMQ.name-1190"><a href="#BunnyMQ.name-1190"><span class="linenos">1190</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_name</span>
 </span></pre></div>
 
 
-            <div class="docstring"><p>Constructs a new BunnyMQ</p>
+            <div class="docstring"><p>A string used for identification purposes only.</p>
 
-<h6 id="parameters">Parameters</h6>
-
-<ul>
-<li><strong>timeout</strong>:  Timeout period for thread operations</li>
-<li><strong>interval</strong>:  Interval to sleep when queue is empty</li>
-<li><strong>grace_period: How long to wait after stopping to wait for messages in the queue to empty out</strong>: </li>
-</ul>
+<p>It has no semantics. Multiple threads may be given the same name. The
+initial name is set by the constructor.</p>
 </div>
 
 
@@ -516,14 +639,16 @@ finally:
 
     </div>
     <a class="headerlink" href="#BunnyMQ.register_handler"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="BunnyMQ.register_handler-48"><a href="#BunnyMQ.register_handler-48"><span class="linenos">48</span></a>    <span class="k">def</span> <span class="nf">register_handler</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message_type</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">handler</span><span class="p">:</span> <span class="n">Callable</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-</span><span id="BunnyMQ.register_handler-49"><a href="#BunnyMQ.register_handler-49"><span class="linenos">49</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="BunnyMQ.register_handler-50"><a href="#BunnyMQ.register_handler-50"><span class="linenos">50</span></a><span class="sd">        Registers a handler for given message_typ</span>
-</span><span id="BunnyMQ.register_handler-51"><a href="#BunnyMQ.register_handler-51"><span class="linenos">51</span></a><span class="sd">        :param message_type: The message type</span>
-</span><span id="BunnyMQ.register_handler-52"><a href="#BunnyMQ.register_handler-52"><span class="linenos">52</span></a><span class="sd">        :param handler: The callable to register; this will be passed the messag</span>
-</span><span id="BunnyMQ.register_handler-53"><a href="#BunnyMQ.register_handler-53"><span class="linenos">53</span></a><span class="sd">        &quot;&quot;&quot;</span>
-</span><span id="BunnyMQ.register_handler-54"><a href="#BunnyMQ.register_handler-54"><span class="linenos">54</span></a>        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Registering handler for </span><span class="si">{</span><span class="n">message_type</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-</span><span id="BunnyMQ.register_handler-55"><a href="#BunnyMQ.register_handler-55"><span class="linenos">55</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">handlers</span><span class="p">[</span><span class="n">message_type</span><span class="p">]</span> <span class="o">=</span> <span class="n">handler</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="BunnyMQ.register_handler-53"><a href="#BunnyMQ.register_handler-53"><span class="linenos">53</span></a>    <span class="k">def</span> <span class="nf">register_handler</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message_type</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">handler</span><span class="p">:</span> <span class="n">Callable</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="BunnyMQ.register_handler-54"><a href="#BunnyMQ.register_handler-54"><span class="linenos">54</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="BunnyMQ.register_handler-55"><a href="#BunnyMQ.register_handler-55"><span class="linenos">55</span></a><span class="sd">        Registers a handler for given message_typ</span>
+</span><span id="BunnyMQ.register_handler-56"><a href="#BunnyMQ.register_handler-56"><span class="linenos">56</span></a><span class="sd">        :param message_type: The message type.  Use WILDCARD_HANDLER for all messages.</span>
+</span><span id="BunnyMQ.register_handler-57"><a href="#BunnyMQ.register_handler-57"><span class="linenos">57</span></a><span class="sd">        :param handler: The callable to register; this will be passed the messag</span>
+</span><span id="BunnyMQ.register_handler-58"><a href="#BunnyMQ.register_handler-58"><span class="linenos">58</span></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="BunnyMQ.register_handler-59"><a href="#BunnyMQ.register_handler-59"><span class="linenos">59</span></a>        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Registering handler for </span><span class="si">{</span><span class="n">message_type</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</span><span id="BunnyMQ.register_handler-60"><a href="#BunnyMQ.register_handler-60"><span class="linenos">60</span></a>        <span class="n">handlers</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">handlers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">message_type</span><span class="p">,</span> <span class="p">[])</span>
+</span><span id="BunnyMQ.register_handler-61"><a href="#BunnyMQ.register_handler-61"><span class="linenos">61</span></a>        <span class="n">handlers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">handler</span><span class="p">)</span>
+</span><span id="BunnyMQ.register_handler-62"><a href="#BunnyMQ.register_handler-62"><span class="linenos">62</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">handlers</span><span class="p">[</span><span class="n">message_type</span><span class="p">]</span> <span class="o">=</span> <span class="n">handlers</span>
 </span></pre></div>
 
 
@@ -532,7 +657,7 @@ finally:
 <h6 id="parameters">Parameters</h6>
 
 <ul>
-<li><strong>message_type</strong>:  The message type</li>
+<li><strong>message_type</strong>:  The message type.  Use WILDCARD_HANDLER for all messages.</li>
 <li><strong>handler</strong>:  The callable to register; this will be passed the messag</li>
 </ul>
 </div>
@@ -550,15 +675,15 @@ finally:
 
     </div>
     <a class="headerlink" href="#BunnyMQ.execute"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="BunnyMQ.execute-57"><a href="#BunnyMQ.execute-57"><span class="linenos">57</span></a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="BunnyMQ.execute-58"><a href="#BunnyMQ.execute-58"><span class="linenos">58</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="BunnyMQ.execute-59"><a href="#BunnyMQ.execute-59"><span class="linenos">59</span></a><span class="sd">        Begin execution of the queue.  this starts the underlying thread, which</span>
-</span><span id="BunnyMQ.execute-60"><a href="#BunnyMQ.execute-60"><span class="linenos">60</span></a><span class="sd">        will call `run`.  It also registers handlers for SIGTERM and SIGINT, so we</span>
-</span><span id="BunnyMQ.execute-61"><a href="#BunnyMQ.execute-61"><span class="linenos">61</span></a><span class="sd">        can cleanly shut down:</span>
-</span><span id="BunnyMQ.execute-62"><a href="#BunnyMQ.execute-62"><span class="linenos">62</span></a><span class="sd">        &quot;&quot;&quot;</span>
-</span><span id="BunnyMQ.execute-63"><a href="#BunnyMQ.execute-63"><span class="linenos">63</span></a>        <span class="n">signal</span><span class="o">.</span><span class="n">signal</span><span class="p">(</span><span class="n">signal</span><span class="o">.</span><span class="n">SIGTERM</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__signal_shutdown</span><span class="p">)</span>
-</span><span id="BunnyMQ.execute-64"><a href="#BunnyMQ.execute-64"><span class="linenos">64</span></a>        <span class="n">signal</span><span class="o">.</span><span class="n">signal</span><span class="p">(</span><span class="n">signal</span><span class="o">.</span><span class="n">SIGINT</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__signal_shutdown</span><span class="p">)</span>
-</span><span id="BunnyMQ.execute-65"><a href="#BunnyMQ.execute-65"><span class="linenos">65</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="BunnyMQ.execute-64"><a href="#BunnyMQ.execute-64"><span class="linenos">64</span></a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="BunnyMQ.execute-65"><a href="#BunnyMQ.execute-65"><span class="linenos">65</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="BunnyMQ.execute-66"><a href="#BunnyMQ.execute-66"><span class="linenos">66</span></a><span class="sd">        Begin execution of the queue.  this starts the underlying thread, which</span>
+</span><span id="BunnyMQ.execute-67"><a href="#BunnyMQ.execute-67"><span class="linenos">67</span></a><span class="sd">        will call `run`.  It also registers handlers for SIGTERM and SIGINT, so we</span>
+</span><span id="BunnyMQ.execute-68"><a href="#BunnyMQ.execute-68"><span class="linenos">68</span></a><span class="sd">        can cleanly shut down:</span>
+</span><span id="BunnyMQ.execute-69"><a href="#BunnyMQ.execute-69"><span class="linenos">69</span></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="BunnyMQ.execute-70"><a href="#BunnyMQ.execute-70"><span class="linenos">70</span></a>        <span class="n">signal</span><span class="o">.</span><span class="n">signal</span><span class="p">(</span><span class="n">signal</span><span class="o">.</span><span class="n">SIGTERM</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__signal_shutdown</span><span class="p">)</span>
+</span><span id="BunnyMQ.execute-71"><a href="#BunnyMQ.execute-71"><span class="linenos">71</span></a>        <span class="n">signal</span><span class="o">.</span><span class="n">signal</span><span class="p">(</span><span class="n">signal</span><span class="o">.</span><span class="n">SIGINT</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__signal_shutdown</span><span class="p">)</span>
+</span><span id="BunnyMQ.execute-72"><a href="#BunnyMQ.execute-72"><span class="linenos">72</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
 </span></pre></div>
 
 
@@ -580,12 +705,12 @@ can cleanly shut down:</p>
 
     </div>
     <a class="headerlink" href="#BunnyMQ.run"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="BunnyMQ.run-67"><a href="#BunnyMQ.run-67"><span class="linenos">67</span></a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="BunnyMQ.run-68"><a href="#BunnyMQ.run-68"><span class="linenos">68</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot; This is the underlying Thread&#39;s run method; called via `execute-&gt;start` &quot;&quot;&quot;</span>
-</span><span id="BunnyMQ.run-69"><a href="#BunnyMQ.run-69"><span class="linenos">69</span></a>        <span class="k">while</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">stopped</span><span class="o">.</span><span class="n">wait</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">timeout</span><span class="p">):</span>
-</span><span id="BunnyMQ.run-70"><a href="#BunnyMQ.run-70"><span class="linenos">70</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">handle_message</span><span class="p">()</span>
-</span><span id="BunnyMQ.run-71"><a href="#BunnyMQ.run-71"><span class="linenos">71</span></a>            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">queue</span><span class="o">.</span><span class="n">empty</span><span class="p">():</span>
-</span><span id="BunnyMQ.run-72"><a href="#BunnyMQ.run-72"><span class="linenos">72</span></a>                <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">interval</span><span class="p">)</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="BunnyMQ.run-74"><a href="#BunnyMQ.run-74"><span class="linenos">74</span></a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="BunnyMQ.run-75"><a href="#BunnyMQ.run-75"><span class="linenos">75</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot; This is the underlying Thread&#39;s run method; called via `execute-&gt;start` &quot;&quot;&quot;</span>
+</span><span id="BunnyMQ.run-76"><a href="#BunnyMQ.run-76"><span class="linenos">76</span></a>        <span class="k">while</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">stopped</span><span class="o">.</span><span class="n">wait</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">timeout</span><span class="p">):</span>
+</span><span id="BunnyMQ.run-77"><a href="#BunnyMQ.run-77"><span class="linenos">77</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">handle_message</span><span class="p">()</span>
+</span><span id="BunnyMQ.run-78"><a href="#BunnyMQ.run-78"><span class="linenos">78</span></a>            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">queue</span><span class="o">.</span><span class="n">empty</span><span class="p">():</span>
+</span><span id="BunnyMQ.run-79"><a href="#BunnyMQ.run-79"><span class="linenos">79</span></a>                <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">interval</span><span class="p">)</span>
 </span></pre></div>
 
 
@@ -605,19 +730,31 @@ can cleanly shut down:</p>
 
     </div>
     <a class="headerlink" href="#BunnyMQ.handle_message"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="BunnyMQ.handle_message-74"><a href="#BunnyMQ.handle_message-74"><span class="linenos">74</span></a>    <span class="k">def</span> <span class="nf">handle_message</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="BunnyMQ.handle_message-75"><a href="#BunnyMQ.handle_message-75"><span class="linenos">75</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="BunnyMQ.handle_message-76"><a href="#BunnyMQ.handle_message-76"><span class="linenos">76</span></a><span class="sd">        Handles the next message from the queue; calling any registered</span>
-</span><span id="BunnyMQ.handle_message-77"><a href="#BunnyMQ.handle_message-77"><span class="linenos">77</span></a><span class="sd">        handlers with the message</span>
-</span><span id="BunnyMQ.handle_message-78"><a href="#BunnyMQ.handle_message-78"><span class="linenos">78</span></a><span class="sd">        &quot;&quot;&quot;</span>
-</span><span id="BunnyMQ.handle_message-79"><a href="#BunnyMQ.handle_message-79"><span class="linenos">79</span></a>        <span class="k">try</span><span class="p">:</span>
-</span><span id="BunnyMQ.handle_message-80"><a href="#BunnyMQ.handle_message-80"><span class="linenos">80</span></a>            <span class="n">message</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">queue</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">block</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-</span><span id="BunnyMQ.handle_message-81"><a href="#BunnyMQ.handle_message-81"><span class="linenos">81</span></a>            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Received message: </span><span class="si">{</span><span class="n">message</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-</span><span id="BunnyMQ.handle_message-82"><a href="#BunnyMQ.handle_message-82"><span class="linenos">82</span></a>            <span class="n">message_type</span> <span class="o">=</span> <span class="n">message</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span>
-</span><span id="BunnyMQ.handle_message-83"><a href="#BunnyMQ.handle_message-83"><span class="linenos">83</span></a>            <span class="n">handler</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">handlers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">message_type</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-</span><span id="BunnyMQ.handle_message-84"><a href="#BunnyMQ.handle_message-84"><span class="linenos">84</span></a>            <span class="n">handler</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
-</span><span id="BunnyMQ.handle_message-85"><a href="#BunnyMQ.handle_message-85"><span class="linenos">85</span></a>        <span class="k">except</span> <span class="n">queue</span><span class="o">.</span><span class="n">Empty</span><span class="p">:</span>
-</span><span id="BunnyMQ.handle_message-86"><a href="#BunnyMQ.handle_message-86"><span class="linenos">86</span></a>            <span class="k">pass</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="BunnyMQ.handle_message-81"><a href="#BunnyMQ.handle_message-81"><span class="linenos"> 81</span></a>    <span class="k">def</span> <span class="nf">handle_message</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="BunnyMQ.handle_message-82"><a href="#BunnyMQ.handle_message-82"><span class="linenos"> 82</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="BunnyMQ.handle_message-83"><a href="#BunnyMQ.handle_message-83"><span class="linenos"> 83</span></a><span class="sd">        Handles the next message from the queue; calling any registered</span>
+</span><span id="BunnyMQ.handle_message-84"><a href="#BunnyMQ.handle_message-84"><span class="linenos"> 84</span></a><span class="sd">        handlers with the message</span>
+</span><span id="BunnyMQ.handle_message-85"><a href="#BunnyMQ.handle_message-85"><span class="linenos"> 85</span></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="BunnyMQ.handle_message-86"><a href="#BunnyMQ.handle_message-86"><span class="linenos"> 86</span></a>        <span class="k">try</span><span class="p">:</span>
+</span><span id="BunnyMQ.handle_message-87"><a href="#BunnyMQ.handle_message-87"><span class="linenos"> 87</span></a>            <span class="n">message</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">queue</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">block</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</span><span id="BunnyMQ.handle_message-88"><a href="#BunnyMQ.handle_message-88"><span class="linenos"> 88</span></a>            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Received message: </span><span class="si">{</span><span class="n">message</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="p">{</span>
+</span><span id="BunnyMQ.handle_message-89"><a href="#BunnyMQ.handle_message-89"><span class="linenos"> 89</span></a>                <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span>
+</span><span id="BunnyMQ.handle_message-90"><a href="#BunnyMQ.handle_message-90"><span class="linenos"> 90</span></a>            <span class="p">})</span>
+</span><span id="BunnyMQ.handle_message-91"><a href="#BunnyMQ.handle_message-91"><span class="linenos"> 91</span></a>            <span class="n">message_type</span> <span class="o">=</span> <span class="n">message</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;type&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+</span><span id="BunnyMQ.handle_message-92"><a href="#BunnyMQ.handle_message-92"><span class="linenos"> 92</span></a>            <span class="k">if</span> <span class="n">message_type</span><span class="p">:</span>
+</span><span id="BunnyMQ.handle_message-93"><a href="#BunnyMQ.handle_message-93"><span class="linenos"> 93</span></a>                <span class="n">handlers</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">handlers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">message_type</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+</span><span id="BunnyMQ.handle_message-94"><a href="#BunnyMQ.handle_message-94"><span class="linenos"> 94</span></a>                <span class="k">if</span> <span class="n">handlers</span><span class="p">:</span>
+</span><span id="BunnyMQ.handle_message-95"><a href="#BunnyMQ.handle_message-95"><span class="linenos"> 95</span></a>                    <span class="k">for</span> <span class="n">handler</span> <span class="ow">in</span> <span class="n">handlers</span><span class="p">:</span>
+</span><span id="BunnyMQ.handle_message-96"><a href="#BunnyMQ.handle_message-96"><span class="linenos"> 96</span></a>                        <span class="n">handler</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+</span><span id="BunnyMQ.handle_message-97"><a href="#BunnyMQ.handle_message-97"><span class="linenos"> 97</span></a>
+</span><span id="BunnyMQ.handle_message-98"><a href="#BunnyMQ.handle_message-98"><span class="linenos"> 98</span></a>            <span class="c1"># Check for wildcard handlers:</span>
+</span><span id="BunnyMQ.handle_message-99"><a href="#BunnyMQ.handle_message-99"><span class="linenos"> 99</span></a>            <span class="n">handlers</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">handlers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">WILDCARD_HANDLER</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+</span><span id="BunnyMQ.handle_message-100"><a href="#BunnyMQ.handle_message-100"><span class="linenos">100</span></a>            <span class="k">if</span> <span class="n">handlers</span><span class="p">:</span>
+</span><span id="BunnyMQ.handle_message-101"><a href="#BunnyMQ.handle_message-101"><span class="linenos">101</span></a>                <span class="k">for</span> <span class="n">handler</span> <span class="ow">in</span> <span class="n">handlers</span><span class="p">:</span>
+</span><span id="BunnyMQ.handle_message-102"><a href="#BunnyMQ.handle_message-102"><span class="linenos">102</span></a>                    <span class="n">handler</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+</span><span id="BunnyMQ.handle_message-103"><a href="#BunnyMQ.handle_message-103"><span class="linenos">103</span></a>
+</span><span id="BunnyMQ.handle_message-104"><a href="#BunnyMQ.handle_message-104"><span class="linenos">104</span></a>        <span class="k">except</span> <span class="n">queue</span><span class="o">.</span><span class="n">Empty</span><span class="p">:</span>
+</span><span id="BunnyMQ.handle_message-105"><a href="#BunnyMQ.handle_message-105"><span class="linenos">105</span></a>            <span class="k">pass</span>
 </span></pre></div>
 
 
@@ -638,25 +775,29 @@ handlers with the message</p>
 
     </div>
     <a class="headerlink" href="#BunnyMQ.stop"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="BunnyMQ.stop-98"><a href="#BunnyMQ.stop-98"><span class="linenos"> 98</span></a>    <span class="k">def</span> <span class="nf">stop</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="BunnyMQ.stop-99"><a href="#BunnyMQ.stop-99"><span class="linenos"> 99</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="BunnyMQ.stop-100"><a href="#BunnyMQ.stop-100"><span class="linenos">100</span></a><span class="sd">        Stop processing messages and shuts down the queue.   This disallows new messages</span>
-</span><span id="BunnyMQ.stop-101"><a href="#BunnyMQ.stop-101"><span class="linenos">101</span></a><span class="sd">        shuttint down, and waits up to a period of self.grace_period for the queue to empty:</span>
-</span><span id="BunnyMQ.stop-102"><a href="#BunnyMQ.stop-102"><span class="linenos">102</span></a><span class="sd">        &quot;&quot;&quot;</span>
-</span><span id="BunnyMQ.stop-103"><a href="#BunnyMQ.stop-103"><span class="linenos">103</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">stopping</span> <span class="o">=</span> <span class="kc">True</span>
-</span><span id="BunnyMQ.stop-104"><a href="#BunnyMQ.stop-104"><span class="linenos">104</span></a>        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Stopping queue with: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">queue</span><span class="o">.</span><span class="n">qsize</span><span class="p">()</span><span class="si">}</span><span class="s2"> items left.&quot;</span><span class="p">)</span>
-</span><span id="BunnyMQ.stop-105"><a href="#BunnyMQ.stop-105"><span class="linenos">105</span></a>        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">grace_period</span><span class="p">)):</span>
-</span><span id="BunnyMQ.stop-106"><a href="#BunnyMQ.stop-106"><span class="linenos">106</span></a>            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">queue</span><span class="o">.</span><span class="n">empty</span><span class="p">():</span>
-</span><span id="BunnyMQ.stop-107"><a href="#BunnyMQ.stop-107"><span class="linenos">107</span></a>                <span class="k">break</span>
-</span><span id="BunnyMQ.stop-108"><a href="#BunnyMQ.stop-108"><span class="linenos">108</span></a>            <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
-</span><span id="BunnyMQ.stop-109"><a href="#BunnyMQ.stop-109"><span class="linenos">109</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">stopped</span><span class="o">.</span><span class="n">set</span><span class="p">()</span>
-</span><span id="BunnyMQ.stop-110"><a href="#BunnyMQ.stop-110"><span class="linenos">110</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">timeout</span><span class="p">)</span>
-</span><span id="BunnyMQ.stop-111"><a href="#BunnyMQ.stop-111"><span class="linenos">111</span></a>        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Stopped queue with: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">queue</span><span class="o">.</span><span class="n">qsize</span><span class="p">()</span><span class="si">}</span><span class="s2"> items left.&quot;</span><span class="p">)</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="BunnyMQ.stop-117"><a href="#BunnyMQ.stop-117"><span class="linenos">117</span></a>    <span class="k">def</span> <span class="nf">stop</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="BunnyMQ.stop-118"><a href="#BunnyMQ.stop-118"><span class="linenos">118</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="BunnyMQ.stop-119"><a href="#BunnyMQ.stop-119"><span class="linenos">119</span></a><span class="sd">        Gracefully stop processing messages and shuts down the queue.   This disallows new</span>
+</span><span id="BunnyMQ.stop-120"><a href="#BunnyMQ.stop-120"><span class="linenos">120</span></a><span class="sd">        messages to be sent and waits up to a period of self.grace_period for the queue to empty:</span>
+</span><span id="BunnyMQ.stop-121"><a href="#BunnyMQ.stop-121"><span class="linenos">121</span></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="BunnyMQ.stop-122"><a href="#BunnyMQ.stop-122"><span class="linenos">122</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">stopping</span> <span class="o">=</span> <span class="kc">True</span>
+</span><span id="BunnyMQ.stop-123"><a href="#BunnyMQ.stop-123"><span class="linenos">123</span></a>        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Stopping queue with: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">queue</span><span class="o">.</span><span class="n">qsize</span><span class="p">()</span><span class="si">}</span><span class="s2"> items left.&quot;</span><span class="p">,</span> <span class="p">{</span>
+</span><span id="BunnyMQ.stop-124"><a href="#BunnyMQ.stop-124"><span class="linenos">124</span></a>            <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span>
+</span><span id="BunnyMQ.stop-125"><a href="#BunnyMQ.stop-125"><span class="linenos">125</span></a>        <span class="p">})</span>
+</span><span id="BunnyMQ.stop-126"><a href="#BunnyMQ.stop-126"><span class="linenos">126</span></a>        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">grace_period</span><span class="p">)):</span>
+</span><span id="BunnyMQ.stop-127"><a href="#BunnyMQ.stop-127"><span class="linenos">127</span></a>            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">queue</span><span class="o">.</span><span class="n">empty</span><span class="p">():</span>
+</span><span id="BunnyMQ.stop-128"><a href="#BunnyMQ.stop-128"><span class="linenos">128</span></a>                <span class="k">break</span>
+</span><span id="BunnyMQ.stop-129"><a href="#BunnyMQ.stop-129"><span class="linenos">129</span></a>            <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+</span><span id="BunnyMQ.stop-130"><a href="#BunnyMQ.stop-130"><span class="linenos">130</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">stopped</span><span class="o">.</span><span class="n">set</span><span class="p">()</span>
+</span><span id="BunnyMQ.stop-131"><a href="#BunnyMQ.stop-131"><span class="linenos">131</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">timeout</span><span class="p">)</span>
+</span><span id="BunnyMQ.stop-132"><a href="#BunnyMQ.stop-132"><span class="linenos">132</span></a>        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Stopped queue with: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">queue</span><span class="o">.</span><span class="n">qsize</span><span class="p">()</span><span class="si">}</span><span class="s2"> items left.&quot;</span><span class="p">,</span> <span class="p">{</span>
+</span><span id="BunnyMQ.stop-133"><a href="#BunnyMQ.stop-133"><span class="linenos">133</span></a>            <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span>
+</span><span id="BunnyMQ.stop-134"><a href="#BunnyMQ.stop-134"><span class="linenos">134</span></a>        <span class="p">})</span>
 </span></pre></div>
 
 
-            <div class="docstring"><p>Stop processing messages and shuts down the queue.   This disallows new messages
-shuttint down, and waits up to a period of self.grace_period for the queue to empty:</p>
+            <div class="docstring"><p>Gracefully stop processing messages and shuts down the queue.   This disallows new
+messages to be sent and waits up to a period of self.grace_period for the queue to empty:</p>
 </div>
 
 
@@ -672,13 +813,15 @@ shuttint down, and waits up to a period of self.grace_period for the queue to em
 
     </div>
     <a class="headerlink" href="#BunnyMQ.send_message"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="BunnyMQ.send_message-113"><a href="#BunnyMQ.send_message-113"><span class="linenos">113</span></a>    <span class="k">def</span> <span class="nf">send_message</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]):</span>
-</span><span id="BunnyMQ.send_message-114"><a href="#BunnyMQ.send_message-114"><span class="linenos">114</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot; Stores a message in the queue, to processed by any registered handlers&quot;&quot;&quot;</span>
-</span><span id="BunnyMQ.send_message-115"><a href="#BunnyMQ.send_message-115"><span class="linenos">115</span></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">stopping</span><span class="p">:</span>
-</span><span id="BunnyMQ.send_message-116"><a href="#BunnyMQ.send_message-116"><span class="linenos">116</span></a>            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Queue is stopped; blocking message: </span><span class="si">{</span><span class="n">message</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-</span><span id="BunnyMQ.send_message-117"><a href="#BunnyMQ.send_message-117"><span class="linenos">117</span></a>        <span class="k">else</span><span class="p">:</span>
-</span><span id="BunnyMQ.send_message-118"><a href="#BunnyMQ.send_message-118"><span class="linenos">118</span></a>            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Sending message: </span><span class="si">{</span><span class="n">message</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-</span><span id="BunnyMQ.send_message-119"><a href="#BunnyMQ.send_message-119"><span class="linenos">119</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">queue</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="BunnyMQ.send_message-136"><a href="#BunnyMQ.send_message-136"><span class="linenos">136</span></a>    <span class="k">def</span> <span class="nf">send_message</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]):</span>
+</span><span id="BunnyMQ.send_message-137"><a href="#BunnyMQ.send_message-137"><span class="linenos">137</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot; Stores a message in the queue, to processed by any registered handlers&quot;&quot;&quot;</span>
+</span><span id="BunnyMQ.send_message-138"><a href="#BunnyMQ.send_message-138"><span class="linenos">138</span></a>        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Sending message: </span><span class="si">{</span><span class="n">message</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">})</span>
+</span><span id="BunnyMQ.send_message-139"><a href="#BunnyMQ.send_message-139"><span class="linenos">139</span></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">stopping</span><span class="p">:</span>
+</span><span id="BunnyMQ.send_message-140"><a href="#BunnyMQ.send_message-140"><span class="linenos">140</span></a>            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Queue is stopped; blocking message: </span><span class="si">{</span><span class="n">message</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="p">{</span>
+</span><span id="BunnyMQ.send_message-141"><a href="#BunnyMQ.send_message-141"><span class="linenos">141</span></a>                <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span>
+</span><span id="BunnyMQ.send_message-142"><a href="#BunnyMQ.send_message-142"><span class="linenos">142</span></a>            <span class="p">})</span>
+</span><span id="BunnyMQ.send_message-143"><a href="#BunnyMQ.send_message-143"><span class="linenos">143</span></a>        <span class="k">else</span><span class="p">:</span>
+</span><span id="BunnyMQ.send_message-144"><a href="#BunnyMQ.send_message-144"><span class="linenos">144</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">queue</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
 </span></pre></div>
 
 
@@ -693,7 +836,6 @@ shuttint down, and waits up to a period of self.grace_period for the queue to em
                                     <div><dt>threading.Thread</dt>
                                 <dd id="BunnyMQ.start" class="function">start</dd>
                 <dd id="BunnyMQ.join" class="function">join</dd>
-                <dd id="BunnyMQ.name" class="variable">name</dd>
                 <dd id="BunnyMQ.ident" class="variable">ident</dd>
                 <dd id="BunnyMQ.is_alive" class="function">is_alive</dd>
                 <dd id="BunnyMQ.daemon" class="variable">daemon</dd>
