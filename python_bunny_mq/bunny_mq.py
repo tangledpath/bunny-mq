@@ -1,9 +1,14 @@
+import hashlib
+import json
 import logging
 import queue
 import signal
 import time
+import uuid
 from threading import Thread, Event
 from typing import Dict, Any, Callable
+
+from .bounded_dict import BoundedDict
 
 logger = logging.getLogger("python-bunny-mq")
 
@@ -23,7 +28,7 @@ class BunnyMQ(Thread):
     try:
         bunny.register_handler("foo", foo_handler)
         bunny.start()
-        bunny.send_message(type='foo', body="foobar")
+        bunny.send_message(['command':'foo', 'body':{"foo": 'bar}])
         time.sleep(1)
     finally:
         bunny.stop()
@@ -31,13 +36,14 @@ class BunnyMQ(Thread):
     """
 
     def __init__(self, name: str = DEFAULT_NAME, timeout: float = 1.0, interval: float = 1.0,
-                 grace_period: float = 15.0):
+                 grace_period: float = 15.0, sequence_number: int = 0):
         """
         Constructs a new BunnyMQ
         :param name: Name for given queue, in case you are using multiple..
         :param timeout: Timeout period for thread operations
         :param interval: Interval to sleep when queue is empty
         :param grace_period: How long to wait after stopping to wait for messages in the queue to empty out:
+        :param sequence_number: Starting sequence number for events, defaults to 0
         """
         Thread.__init__(self)
         self.name = name
@@ -47,18 +53,42 @@ class BunnyMQ(Thread):
         self.interval = interval
         self.grace_period = grace_period
         self.stopping = False
+        self.sequence_number = 0
         self.stopped = Event()
+        self.processed_count = 0
+        self.processed_events = BoundedDict()
 
-    def register_handler(self, message_type: str, handler: Callable) -> None:
+    def send_message(self, message: Dict[str, Any]):
+        """ Stores a message in the queue, to processed by any registered handlers"""
+        logger.info(f"Sending message: {message}", {"name": self.name})
+        result = None
+        if self.stopping:
+            logger.info(f"Queue is stopped; blocking message: {message}", {
+                "name": self.name
+            })
+        else:
+            message_id = uuid.uuid4()
+            metadata = {
+                'MD5OfMessageBody': hashlib.md5(json.dumps(message).encode()).hexdigest(),
+                'MessageId': message_id,
+                'SequenceNumber': self.sequence_number
+            }
+            self.queue.put(dict(metadata=metadata, message=message))
+            self.sequence_number += 1
+            result = message_id
+
+        return result
+
+    def register_handler(self, message_command: str, handler: Callable) -> None:
         """
-        Registers a handler for given message_typ
-        :param message_type: The message type.  Use WILDCARD_HANDLER for all messages.
+        Registers a handler for given message_command
+        :param message_command: The message command(type).  Use WILDCARD_HANDLER for all messages.
         :param handler: The callable to register; this will be passed the messag
         """
-        logger.info(f"Registering handler for {message_type}")
-        handlers = self.handlers.get(message_type, [])
+        logger.info(f"Registering handler for {message_command}")
+        handlers = self.handlers.get(message_command, [])
         handlers.append(handler)
-        self.handlers[message_type] = handlers
+        self.handlers[message_command] = handlers
 
     def execute(self):
         """
@@ -74,6 +104,7 @@ class BunnyMQ(Thread):
         """ This is the underlying Thread's run method; called via `execute->start` """
         while not self.stopped.wait(self.timeout):
             self.handle_message()
+            self.processed_count += 1
             if self.queue.empty():
                 time.sleep(self.interval)
 
@@ -83,22 +114,34 @@ class BunnyMQ(Thread):
         handlers with the message
         """
         try:
-            message: Dict[str] = self.queue.get(block=False)
-            logger.info(f"Received message: {message}", {
-                "name": self.name
-            })
-            message_type = message.get("type", None)
-            if message_type:
-                handlers = self.handlers.get(message_type, None)
+            full_event: Dict[str, Any] = self.queue.get(block=False)
+            message: Dict[str, Any] = full_event["message"]
+            metadata: Dict[str, Any] = full_event["metadata"]
+
+            message_cmd = message.get("command", None)
+            processed = False
+            if message_cmd:
+                handlers = self.handlers.get(message_cmd, None)
                 if handlers:
+                    logger.info(f"Processing message: {message}", {
+                        "name": self.name,
+                        "message": message,
+                        "metadata": metadata,
+                    })
+
                     for handler in handlers:
                         handler(message)
+                        processed = True
 
             # Check for wildcard handlers:
             handlers = self.handlers.get(self.WILDCARD_HANDLER, None)
             if handlers:
                 for handler in handlers:
                     handler(message)
+                    processed = True
+
+            if processed:
+                self.processed_events[metadata["MessageId"]] = full_event
 
         except queue.Empty:
             pass
@@ -131,16 +174,6 @@ class BunnyMQ(Thread):
         logger.info(f"Stopped queue with: {self.queue.qsize()} items left.", {
             "name": self.name
         })
-
-    def send_message(self, message: Dict[str, Any]):
-        """ Stores a message in the queue, to processed by any registered handlers"""
-        logger.info(f"Sending message: {message}", {"name": self.name})
-        if self.stopping:
-            logger.info(f"Queue is stopped; blocking message: {message}", {
-                "name": self.name
-            })
-        else:
-            self.queue.put(message)
 
     def __signal_shutdown(self, _signum, _frame):
         """ Called because of a SIGTERM or SIGINT signal"""

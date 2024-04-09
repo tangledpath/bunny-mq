@@ -2,7 +2,7 @@ from .bunny_mq import BunnyMQ
 
 
 def test_simple_message():
-    """ Test that we can subscribe to a message type and then receive it when message is sent. """
+    """ Test that we can subscribe to a message command type and then receive it when message is sent. """
     handled = False
 
     def foo_handler(message):
@@ -16,16 +16,19 @@ def test_simple_message():
     try:
         bunny.register_handler("foo", foo_handler)
         bunny.start()
-        bunny.send_message({'type': 'foo', 'body': "foobar"})
+        bunny.send_message({'command': 'foo', 'body': "foobar"})
     finally:
         bunny.stop()
 
     assert handled
     assert len(bunny) == 0
+    assert bunny.sequence_number == 1
+    assert bunny.processed_count == 1
+    assert len(bunny.processed_events) == 1
 
 
 def test_wildcard_handler():
-    """ Test that we can subscribe to a wildcard (*) and then receive any type of message """
+    """ Test that we can subscribe to a wildcard (*) and then receive any command type of message """
     handled = 0
 
     def wildcard_handler(message):
@@ -39,10 +42,13 @@ def test_wildcard_handler():
     try:
         bunny.register_handler(BunnyMQ.WILDCARD_HANDLER, wildcard_handler)
         bunny.start()
-        bunny.send_message({'type': 'bar', 'body': "barfood"})
-        bunny.send_message({'type': 'foo', 'body': "foobard"})
+        bunny.send_message({'command': 'bar', 'body': "barfood"})
+        bunny.send_message({'command': 'foo', 'body': "foobard"})
     finally:
         bunny.stop()
 
     assert handled == 2
     assert len(bunny) == 0
+    assert bunny.sequence_number == 2
+    assert bunny.processed_count == 2
+    assert len(bunny.processed_events) == 2
