@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "python-bunny-mq"
-version = "0.1.6"
+version = "0.1.8"
 description = "Ultra-lightweight (no-dependency) message queue for intra-process pub-sub communication."
 authors = ["Steven Miers <steven.miers@gmail.com>"]
 license = "THE UNLICENSE"

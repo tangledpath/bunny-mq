@@ -58,17 +58,18 @@ class BunnyMQ(Thread):
         self.processed_count = 0
         self.processed_events = BoundedDict()
 
-    def send_message(self, message: Dict[str, Any]):
+    def send_message(self, command:str, message: Dict[str, Any]) -> Dict[str, Any]:
         """ Stores a message in the queue, to processed by any registered handlers"""
-        logger.info(f"Sending message: {message}", {"name": self.name})
+        logger.info(f"Sending message[{command}]: {message}", {"name": self.name})
         result = None
         if self.stopping:
             logger.info(f"Queue is stopped; blocking message: {message}", {
                 "name": self.name
             })
         else:
-            message_id = uuid.uuid4()
+            message_id = str(uuid.uuid4())
             metadata = {
+                'command': command,
                 'MD5OfMessageBody': hashlib.md5(json.dumps(message).encode()).hexdigest(),
                 'MessageId': message_id,
                 'SequenceNumber': self.sequence_number
@@ -118,7 +119,7 @@ class BunnyMQ(Thread):
             message: Dict[str, Any] = full_event["message"]
             metadata: Dict[str, Any] = full_event["metadata"]
 
-            message_cmd = message.get("command", None)
+            message_cmd = metadata.get("command", None)
             processed = False
             if message_cmd:
                 handlers = self.handlers.get(message_cmd, None)

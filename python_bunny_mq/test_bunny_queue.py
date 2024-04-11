@@ -16,7 +16,7 @@ def test_simple_message():
     try:
         bunny.register_handler("foo", foo_handler)
         bunny.start()
-        bunny.send_message({'command': 'foo', 'body': "foobar"})
+        bunny.send_message(command='foo', message={'body': "foobar"})
     finally:
         bunny.stop()
 
@@ -42,8 +42,8 @@ def test_wildcard_handler():
     try:
         bunny.register_handler(BunnyMQ.WILDCARD_HANDLER, wildcard_handler)
         bunny.start()
-        bunny.send_message({'command': 'bar', 'body': "barfood"})
-        bunny.send_message({'command': 'foo', 'body': "foobard"})
+        bunny.send_message(command='foo', message={'body': "barfood"})
+        bunny.send_message(command='bar', message={'body': "foobard"})
     finally:
         bunny.stop()
 
